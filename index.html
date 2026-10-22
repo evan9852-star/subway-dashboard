@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지하철 승하차 대시보드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one column; controls bar, candidate station cards, two charts, full ranking, data shelf. Accent = Busan Line 1 orange. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1c232b;
+  --muted: #5d6874;
+  --line: #dde2e8;
+  --soft: #eceff3;
+  --accent: #e2600a;
+  --accent-soft: #fde9db;
+  --bar: #a8b2bd;
+  --danger: #c0392b;
+  --s1: #e2600a; --s2: #5f9e2f; --s3: #a87b00; --s4: #2271c3; --s5: #8a4fa3; --s6: #1a9a97;
+  --font: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161b; --surface: #1a2027; --fg: #e8ecf0; --muted: #98a3ae; --line: #2c343d; --soft: #232a32;
+  --accent: #ff8a3d; --accent-soft: #3a2517; --bar: #56616d; --danger: #ff7b6b;
+  --s1: #ff8a3d; --s2: #8fcb5c; --s3: #d9b13c; --s4: #5aa6f0; --s5: #c08ad8; --s6: #4fc9c5;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #12161b; --surface: #1a2027; --fg: #e8ecf0; --muted: #98a3ae; --line: #2c343d; --soft: #232a32;
+  --accent: #ff8a3d; --accent-soft: #3a2517; --bar: #56616d; --danger: #ff7b6b;
+  --s1: #ff8a3d; --s2: #8fcb5c; --s3: #d9b13c; --s4: #5aa6f0; --s5: #c08ad8; --s6: #4fc9c5;
+  color-scheme: dark; }
+
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1040px; margin: 0 auto; padding-block: 28px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+h1 { font-size: 26px; font-weight: 700; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+h2 { font-size: 17px; font-weight: 600; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 4px 0 0; font-size: 14px; }
+.num { font-variant-numeric: tabular-nums; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: end; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.sample-note { border: 1px dashed var(--accent); background: var(--accent-soft); color: var(--fg); border-radius: 10px; padding: 12px 14px; font-size: 14px; }
+
+/* controls */
+.controls { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 14px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.label { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.05em; min-width: 52px; }
+.group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+button, select, input { font: inherit; color: inherit; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: 14px; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chip.ghost { border-style: dashed; color: var(--muted); }
+.chip:focus-visible, select:focus-visible, input:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select, input[type="text"] { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 5px 8px; font-size: 14px; }
+.stchip { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 14px;
+  background: var(--soft); border: 1px solid var(--line); }
+.stchip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.stchip button { border: 0; background: transparent; cursor: pointer; color: var(--muted); width: 22px; height: 22px; border-radius: 50%; line-height: 1; }
+.stchip button:hover { background: var(--line); }
+#addSt { width: 130px; }
+
+/* candidate cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+.card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card .name { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+.card .name i { width: 10px; height: 10px; border-radius: 50%; }
+.card .rank { font-size: 13px; color: var(--muted); }
+.card .big { font-size: 24px; font-weight: 500; }
+.card .unit { font-size: 13px; color: var(--muted); }
+.peaks { display: grid; gap: 2px; border-top: 1px solid var(--line); padding-top: 8px; }
+.peaks-title { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 2px; }
+.peak { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.peak .rk { color: var(--muted); width: 1.6em; display: inline-block; }
+.card.missing { color: var(--muted); }
+
+/* panels */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+.hint { font-size: 13px; color: var(--muted); }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { fill: var(--muted); font-family: var(--font); font-size: 12px; }
+svg .lbl { fill: var(--fg); font-size: 13px; }
+svg .val { fill: var(--fg); font-family: var(--num); font-size: 12px; }
+svg .grid { stroke: var(--line); stroke-width: 1; }
+.chartbox { position: relative; }
+.tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 13px; padding: 8px 10px; border-radius: 8px;
+  white-space: nowrap; transform: translate(-50%, -100%); z-index: 2; }
+.tip div { display: flex; gap: 10px; justify-content: space-between; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+
+/* table */
+.tablebox { overflow-x: auto; max-height: 460px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { padding: 6px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+th { position: sticky; top: 0; background: var(--soft); font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; }
+td.r { text-align: right; }
+tr.cand td { background: var(--accent-soft); font-weight: 600; }
+#q { width: 160px; }
+
+/* data shelf */
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 22px 16px; text-align: center; display: grid; gap: 8px; justify-items: center; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.btn { border: 0; background: var(--accent); color: #fff; border-radius: 8px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+.btn.line { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.btn.danger { background: var(--danger); }
+.files { display: grid; gap: 8px; }
+.file { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.file .meta { font-size: 13px; color: var(--muted); }
+.msg { font-size: 14px; }
+.msg.err { color: var(--danger); }
+ol.steps { margin: 0; padding-left: 20px; font-size: 14px; color: var(--muted); display: grid; gap: 2px; }
+a { color: var(--accent); }
+@media (max-width: 520px) { h1 { font-size: 22px; } .label { min-width: 100%; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* tabs: two pages, Busan and Seoul */
+.tabs { display: inline-flex; background: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+.tabs button { border: 0; background: transparent; border-radius: 999px; padding: 6px 18px; font-weight: 600; font-size: 15px; cursor: pointer; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; }
+.page { display: grid; gap: 28px; }
+.page-sub { margin-top: -16px; }
+
+/* Seoul */
+:root { --ok: #2e9d57; --mid: #c9a100; --warn: #e07b13; --bad: #d23a3a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ok: #5cc982; --mid: #e3c240; --warn: #ff9c45; --bad: #ff6b6b; } }
+:root[data-theme="dark"] { --ok: #5cc982; --mid: #e3c240; --warn: #ff9c45; --bad: #ff6b6b; }
+.lv { font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 999px; color: #fff; background: var(--muted); white-space: nowrap; }
+.lv-여유 { background: var(--ok); } .lv-보통 { background: var(--mid); } .lv-약간붐빔 { background: var(--warn); } .lv-붐빔 { background: var(--bad); }
+.legend-lv { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend-lv span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-lv i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; }
+.strip div { height: 24px; border-radius: 4px; font-size: 11px; color: #fff; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+.subline { display: grid; gap: 2px; border-top: 1px solid var(--line); padding-top: 8px; }
+.subrow { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.subrow .k { color: var(--muted); white-space: nowrap; }
+.subrow > span { white-space: nowrap; }
+.card.missing { align-content: start; }
+.card .msgline { font-size: 13px; color: var(--muted); }
+.notice { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="pgTitle">부산 지하철 승하차</h1>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="도시 고르기">
+      <button role="tab" id="tab-busan" data-page="busan" aria-selected="true">부산</button>
+      <button role="tab" id="tab-seoul" data-page="seoul" aria-selected="false">서울 <span class="live-dot" aria-hidden="true"></span></button>
+    </nav>
+  </header>
+
+  <div id="pg-busan" class="page" role="tabpanel" aria-labelledby="tab-busan">
+  <p class="sub page-sub" id="coverage">데이터를 불러오는 중…</p>
+  <span class="badge" id="modeBadge" hidden>예시 데이터</span>
+
+  <div class="sample-note" id="sampleNote" hidden>
+    지금 보이는 숫자는 <b>화면 모양을 보여주기 위한 예시</b>입니다. 실제 역 인원이 아닙니다.
+    GitHub 저장소의 <b>부산데이터</b> 폴더에 공공데이터포털 CSV를 올리면 1~2분 뒤 실제 숫자로 바뀝니다.
+  </div>
+
+  <section class="controls" aria-label="보는 조건">
+    <div class="row">
+      <span class="label">기간</span>
+      <select id="period" aria-label="기간"></select>
+    </div>
+    <div class="row">
+      <span class="label">요일</span>
+      <div class="group" id="days"></div>
+      <div class="group">
+        <button class="chip ghost" data-preset="지금" title="오늘 요일과 지금 시각으로 맞춥니다">지금 이 시간</button>
+        <button class="chip ghost" data-preset="평일">평일</button>
+        <button class="chip ghost" data-preset="주말">주말</button>
+        <button class="chip ghost" data-preset="전체">전체</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">시간</span>
+      <div class="group">
+        <select id="h0" aria-label="시작 시각"></select><span>부터</span>
+        <select id="h1" aria-label="끝 시각"></select><span>까지</span>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">인원</span>
+      <div class="group" id="kind">
+        <button class="chip" data-kind="all">승차+하차</button>
+        <button class="chip" data-kind="on">승차만</button>
+        <button class="chip" data-kind="off">하차만</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label">후보 역</span>
+      <div class="group" id="stations"></div>
+      <div class="group">
+        <input type="text" id="addSt" list="stList" placeholder="역 이름 추가" aria-label="후보 역 추가">
+        <datalist id="stList"></datalist>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="후보 역 요약" style="display:grid;gap:12px">
+    <div class="panel-head">
+      <h2>후보 역 한눈에</h2>
+      <span class="hint" id="basis"></span>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>시간대별 하루 평균</h2>
+      <span class="hint">음영 = 고른 시간대 · 그래프 위에 올리면 숫자가 보입니다</span>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="chartbox" id="lineBox"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>역별 하루 평균 순위</h2>
+      <span class="hint">상위 15개 · 주황색 = 후보 역</span>
+    </div>
+    <div class="chartbox" id="barBox"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>전체 역 순위표</h2>
+      <input type="text" id="q" placeholder="역 이름 찾기" aria-label="역 이름 찾기">
+    </div>
+    <div class="tablebox"><table><thead><tr><th>순위</th><th>역</th><th style="text-align:right">하루 평균</th><th style="text-align:right">가장 붐비는 시간</th></tr></thead><tbody id="tbody"></tbody></table></div>
+  </section>
+
+  <section class="panel" id="dataPanel">
+    <div class="panel-head">
+      <h2>데이터 파일</h2>
+      <span class="hint">GitHub 저장소 '부산데이터' 폴더의 CSV를 읽습니다</span>
+    </div>
+    <div class="msg" id="msg" role="status"></div>
+    <div class="files" id="files"></div>
+    <ol class="steps">
+      <li><a href="https://www.data.go.kr/data/3057229/fileData.do" target="_blank" rel="noopener">공공데이터포털 · 부산교통공사_시간대별 승하차인원</a>에서 새 달 CSV 내려받기 (매달 말 올라옵니다)</li>
+      <li>GitHub 저장소의 '부산데이터' 폴더에 올리기 (Add file → Upload files · 예전 파일은 그대로 두면 합쳐집니다)</li>
+      <li>1~2분 뒤 이 화면 새로고침</li>
+    </ol>
+  </section>
+  </div>
+
+  <div id="pg-seoul" class="page" role="tabpanel" aria-labelledby="tab-seoul" hidden>
+    <p class="sub page-sub" id="sSub">서울시 실시간 도시데이터 · 단축어 버튼을 누르거나 1시간마다 새로 받습니다</p>
+
+    <section class="controls" aria-label="서울 장소">
+      <div class="row">
+        <span class="label">장소</span>
+        <div class="group" id="places"></div>
+        <div class="group">
+          <span class="hint">장소는 저장소의 '서울장소.txt'에서 바꿉니다</span>
+        </div>
+      </div>
+      <div class="row">
+        <span class="label">혼잡도</span>
+        <div class="legend-lv">
+          <span><i style="background:var(--ok)"></i>여유</span>
+          <span><i style="background:var(--mid)"></i>보통</span>
+          <span><i style="background:var(--warn)"></i>약간 붐빔</span>
+          <span><i style="background:var(--bad)"></i>붐빔</span>
+        </div>
+        <button class="chip ghost" id="sRefresh">화면 다시 읽기</button>
+      </div>
+    </section>
+
+    <div class="notice" id="sNotice" hidden></div>
+
+    <section aria-label="서울 장소별 지금" style="display:grid;gap:12px">
+      <div class="panel-head">
+        <h2>지금 이 장소들</h2>
+        <span class="hint" id="sBasis"></span>
+      </div>
+      <div class="cards" id="sCards"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>앞으로 12시간 예상 혼잡도</h2>
+        <span class="hint">칸 하나 = 1시간 · 숫자 = 시각</span>
+      </div>
+      <div id="sFcst" style="display:grid;gap:10px"></div>
+    </section>
+
+    <p class="hint">혼잡도는 평소(최근 28일 평균) 대비 지금 인구로 정해집니다. 역 승하차는 티머니 기준 약 5분마다 갱신되며 새벽 1~5시에는 나오지 않습니다. 장소('서울장소.txt') 이름은 서울시가 정한 주요 장소 120곳 이름 그대로 써야 합니다 (예: 강남역, 서울역, 홍대입구역(2호선), 잠실역, 신촌·이대역, 명동 관광특구).</p>
+  </div>
+</div>
+
+<script>
+(() => {
+  const WD = ["월", "화", "수", "목", "금", "토", "일"];
+  const DEFAULTS = { period: "all", days: ["목", "금"], h0: 10, h1: 20, kind: "all", stations: ["부산역", "시청", "연산", "경성대부경대"] };
+  const SERIES = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"];
+  const $ = (id) => document.getElementById(id);
+  const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const fmt = (n) => Math.round(n).toLocaleString("ko-KR");
+  const norm = (s) => String(s).replace(/[\s()·.\-ㆍ]/g, "").replace(/역/g, "");
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  let state = load();
+  function load() {
+    try { const s = JSON.parse(localStorage.getItem("bsm-view") || "null"); if (s) return { ...DEFAULTS, ...s }; } catch (e) {}
+    return { ...DEFAULTS, days: [...DEFAULTS.days], stations: [...DEFAULTS.stations] };
+  }
+  function save() { try { localStorage.setItem("bsm-view", JSON.stringify(state)); } catch (e) {} }
+
+  /* ---------- parsing ---------- */
+  function decode(buf) {
+    try { return new TextDecoder("utf-8", { fatal: true }).decode(buf); }
+    catch (e) { return new TextDecoder("euc-kr").decode(buf); }
+  }
+  function parseCSV(text) {
+    const rows = []; let row = [], f = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+      else if (c === '"') q = true;
+      else if (c === ",") { row.push(f); f = ""; }
+      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+      else f += c;
+    }
+    if (f !== "" || row.length) { row.push(f); rows.push(row); }
+    return rows.filter((r) => r.some((x) => x.trim() !== ""));
+  }
+  function hourOf(h) {
+    const s = String(h).replace(/\s/g, "").replace(/^﻿/, "");
+    let m = s.match(/^t_?(\d{2})(\d{2})$/i) || s.match(/^(\d{1,2})(시|:00)?[-~]/) || s.match(/^(\d{1,2})시/) || s.match(/^(\d{2})(\d{2})$/);
+    if (!m) return null;
+    const v = parseInt(m[1], 10);
+    if (v < 0 || v > 24) return null;
+    return v === 24 ? 0 : v;
+  }
+  const findCol = (hdr, keys) => hdr.findIndex((c) => { const n = String(c).replace(/\s/g, "").toLowerCase(); return keys.some((k) => n.includes(k)); });
+  const toNum = (v) => { const n = parseFloat(String(v).replace(/,/g, "")); return isFinite(n) ? n : 0; };
+  function toDate(v) {
+    const d = String(v).replace(/\D/g, "");
+    if (d.length < 8) return null;
+    return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
+  }
+  const gubnOf = (v) => { const s = String(v); return s.includes("승") ? "on" : s.includes("하") ? "off" : "all"; };
+
+  // returns Map key "date|station|hour" -> {on, off, all}
+  function parseTable(rows) {
+    const hi = rows.findIndex((r) => findCol(r, ["역명", "역이름", "sta_nm", "station"]) >= 0);
+    if (hi < 0) throw new Error("역 이름 열을 찾지 못했습니다. 부산교통공사 시간대별 승하차인원 파일인지 확인해 주세요.");
+    const hdr = rows[hi].map((c) => String(c).replace(/^﻿/, "").trim());
+    const cSt = findCol(hdr, ["역명", "역이름", "sta_nm", "station"]);
+    const cDate = findCol(hdr, ["년월일", "일자", "날짜", "ymd", "date"]);
+    const cG = findCol(hdr, ["구분", "gubn"]);
+    if (cDate < 0) throw new Error("날짜 열을 찾지 못했습니다. 열 목록: " + hdr.join(", "));
+    const hourCols = hdr.map((h, i) => [i, hourOf(h)]).filter(([, h]) => h !== null);
+    const out = new Map();
+    const add = (date, st, hour, g, n) => {
+      const k = date + "|" + st + "|" + hour;
+      let o = out.get(k); if (!o) { o = {}; out.set(k, o); }
+      o[g] = (o[g] || 0) + n;
+    };
+    const body = rows.slice(hi + 1);
+    if (hourCols.length) {
+      for (const r of body) {
+        const date = toDate(r[cDate]); const st = String(r[cSt] || "").trim();
+        if (!date || !st) continue;
+        const g = cG >= 0 ? gubnOf(r[cG]) : "all";
+        for (const [i, h] of hourCols) add(date, st, h, g, toNum(r[i]));
+      }
+    } else {
+      const cT = findCol(hdr, ["시간대", "시간"]), cOn = findCol(hdr, ["승차"]), cOff = findCol(hdr, ["하차"]), cN = findCol(hdr, ["인원", "합계", "이용객"]);
+      if (cT < 0 || (cN < 0 && cOn < 0)) throw new Error("시간대나 인원 열을 찾지 못했습니다. 열 목록: " + hdr.join(", "));
+      for (const r of body) {
+        const date = toDate(r[cDate]); const st = String(r[cSt] || "").trim();
+        let h = hourOf(r[cT]); if (h === null) { const m = String(r[cT]).match(/\d+/); h = m ? parseInt(m[0], 10) % 24 : null; }
+        if (!date || !st || h === null) continue;
+        if (cOn >= 0 && cOff >= 0 && cOn !== cOff) { add(date, st, h, "on", toNum(r[cOn])); add(date, st, h, "off", toNum(r[cOff])); }
+        else add(date, st, h, cG >= 0 ? gubnOf(r[cG]) : "all", toNum(r[cN]));
+      }
+    }
+    if (!out.size) throw new Error("읽을 수 있는 행이 없습니다.");
+    // a file with separate 승차/하차 rows may also carry a 합계 row; drop it to avoid double counting
+    for (const o of out.values()) if ((o.on != null || o.off != null) && o.all != null) delete o.all;
+    return out;
+  }
+  function summarize(map) {
+    const dates = new Set(), sts = new Set();
+    for (const k of map.keys()) { const [d, s] = k.split("|"); dates.add(d); sts.add(s); }
+    const ds = [...dates].sort();
+    return { from: ds[0], to: ds[ds.length - 1], days: ds.length, stations: sts.size };
+  }
+
+  /* ---------- data store ---------- */
+  let sources = [];          // [{id, name, uploadedAt, map}]
+  let sample = false;
+  let merged = new Map();    // key -> {on,off,all}
+  function mergeAll() {
+    merged = new Map();
+    for (const src of [...sources].sort((a, b) => (a.uploadedAt < b.uploadedAt ? -1 : 1)))
+      for (const [k, v] of src.map) merged.set(k, { ...(merged.get(k) || {}), ...v });
+  }
+  function value(o, kind) {
+    const has = o.on != null || o.off != null;
+    if (kind === "on") return has ? o.on || 0 : 0;
+    if (kind === "off") return has ? o.off || 0 : 0;
+    return has ? (o.on || 0) + (o.off || 0) : o.all || 0;
+  }
+  function makeSample() {
+    const base = { 서면: 9800, 부산역: 6200, 연산: 6800, 동래: 4300, 남포: 4800, 해운대: 4100, 센텀시티: 3600, 시청: 3100, 경성대부경대: 4500,
+      덕천: 3900, 사상: 4200, 부산대: 3700, 수영: 3300, 하단: 3000, 장산: 2400, 범일: 2600, 토성: 1900, 양정: 2100 };
+    const prof = [0.1, 0, 0, 0, 0, 0.6, 1.6, 3.4, 5.2, 3.1, 2.4, 2.5, 2.8, 2.7, 2.8, 3.0, 3.6, 4.6, 5.4, 3.6, 2.6, 2.1, 1.4, 0.6];
+    const m = new Map(); let seed = 7;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let d = 1; d <= 30; d++) {
+      const date = `2026-09-${String(d).padStart(2, "0")}`;
+      const wd = (new Date(date + "T00:00:00Z").getUTCDay() + 6) % 7;
+      const f = wd >= 5 ? 0.7 : 1;
+      for (const [st, b] of Object.entries(base)) for (let h = 0; h < 24; h++) {
+        const tilt = st === "부산역" || st === "남포" ? (h >= 10 && h <= 16 ? 1.25 : 0.9) : 1;
+        const n = (b / 40) * prof[h] * f * tilt * (0.85 + rnd() * 0.3);
+        m.set(`${date}|${st}|${h}`, { on: Math.round(n * 0.5), off: Math.round(n * 0.5) });
+      }
+    }
+    return m;
+  }
+
+  /* ---------- compute ---------- */
+  const wdOf = (date) => WD[(new Date(date + "T00:00:00Z").getUTCDay() + 6) % 7];
+  function compute() {
+    const want = new Set(state.days);
+    const inPeriod = (d) => state.period === "all" || d.startsWith(state.period);
+    const daysSel = new Set(), stTotal = new Map(), stHour = new Map(), hoursSeen = new Set();
+    for (const [k, o] of merged) {
+      const [d, st, hs] = k.split("|"); const h = +hs;
+      if (!inPeriod(d) || !want.has(wdOf(d))) continue;
+      daysSel.add(d);
+      const v = value(o, state.kind);
+      if (v > 0) hoursSeen.add(h);
+      let hr = stHour.get(st); if (!hr) { hr = new Array(24).fill(0); stHour.set(st, hr); }
+      hr[h] += v;
+      if (h >= state.h0 && h < state.h1) stTotal.set(st, (stTotal.get(st) || 0) + v);
+      else if (!stTotal.has(st)) stTotal.set(st, 0);
+    }
+    const n = Math.max(daysSel.size, 1);
+    const rank = [...stTotal].map(([st, t]) => ({ st, avg: t / n, hours: stHour.get(st).map((x) => x / n) })).sort((a, b) => b.avg - a.avg);
+    rank.forEach((r, i) => (r.rank = i + 1));
+    return { rank, ndays: daysSel.size, hoursSeen };
+  }
+
+  /* ---------- controls ---------- */
+  function periods() {
+    const ms = new Set(); for (const k of merged.keys()) ms.add(k.slice(0, 7));
+    return [...ms].sort().reverse();
+  }
+  function buildControls() {
+    const ps = periods();
+    if (state.period !== "all" && !ps.includes(state.period)) state.period = "all";
+    $("period").innerHTML = `<option value="all">전체 기간 (${ps.length}개월)</option>` + ps.map((p) => `<option value="${p}">${p.replace("-", "년 ")}월</option>`).join("");
+    $("period").value = state.period;
+    $("days").innerHTML = WD.map((d) => `<button class="chip" data-day="${d}" aria-pressed="${state.days.includes(d)}">${d}</button>`).join("");
+    const opt = (from, to, sel) => { let s = ""; for (let h = from; h <= to; h++) s += `<option value="${h}"${h === sel ? " selected" : ""}>${h}시</option>`; return s; };
+    $("h0").innerHTML = opt(0, 23, state.h0);
+    $("h1").innerHTML = opt(1, 24, state.h1);
+    for (const b of $("kind").children) b.setAttribute("aria-pressed", b.dataset.kind === state.kind);
+    const all = [...new Set([...merged.keys()].map((k) => k.split("|")[1]))].sort((a, b) => a.localeCompare(b, "ko"));
+    $("stList").innerHTML = all.map((s) => `<option value="${esc(s)}">`).join("");
+    renderStationChips();
+  }
+  function renderStationChips() {
+    $("stations").innerHTML = state.stations.map((s, i) =>
+      `<span class="stchip"><i style="background:var(${SERIES[i % SERIES.length]})"></i>${esc(s)}<button data-del="${i}" aria-label="${esc(s)} 빼기">×</button></span>`).join("");
+  }
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("button"); if (!t) return;
+    if (t.dataset.day) { const d = t.dataset.day; state.days = state.days.includes(d) ? state.days.filter((x) => x !== d) : [...state.days, d]; }
+    else if (t.dataset.preset === "지금") { const n = new Date(); state.days = [WD[(n.getDay() + 6) % 7]]; state.h0 = n.getHours(); state.h1 = n.getHours() + 1; }
+    else if (t.dataset.preset) { state.days = { 평일: WD.slice(0, 5), 주말: WD.slice(5), 전체: [...WD] }[t.dataset.preset]; }
+    else if (t.dataset.kind) state.kind = t.dataset.kind;
+    else if (t.dataset.del != null) state.stations.splice(+t.dataset.del, 1);
+    else return;
+    save(); buildControls(); render();
+  });
+  $("period").onchange = (e) => { state.period = e.target.value; save(); render(); };
+  $("h0").onchange = (e) => { state.h0 = +e.target.value; if (state.h1 <= state.h0) state.h1 = state.h0 + 1; save(); buildControls(); render(); };
+  $("h1").onchange = (e) => { state.h1 = +e.target.value; if (state.h1 <= state.h0) state.h0 = state.h1 - 1; save(); buildControls(); render(); };
+  function addStation() {
+    const v = $("addSt").value.trim(); if (!v) return;
+    if (!state.stations.some((s) => norm(s) === norm(v))) state.stations.push(v);
+    $("addSt").value = ""; save(); renderStationChips(); render();
+  }
+  $("addSt").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); addStation(); } });
+  $("addSt").addEventListener("change", addStation);
+  $("q").addEventListener("input", () => render());
+
+  /* ---------- render ---------- */
+  function render() {
+    const has = merged.size > 0;
+    $("sampleNote").hidden = !sample; $("modeBadge").hidden = !sample;
+    if (!has) { $("coverage").textContent = "아직 데이터가 없습니다. 아래 데이터 파일 칸에 CSV를 넣어 주세요."; return; }
+    const { rank, ndays, hoursSeen } = compute();
+    const all = [...merged.keys()].map((k) => k.slice(0, 10)).sort();
+    const sum = { from: all[0], to: all[all.length - 1] };
+    $("coverage").innerHTML = `${sample ? "예시 · " : ""}<span class="num">${sum.from.replaceAll("-", ".")} – ${sum.to.replaceAll("-", ".")}</span> 데이터 · 역 ${new Set([...merged.keys()].map((k) => k.split("|")[1])).size}개`;
+    const kindTxt = { all: "승차+하차", on: "승차", off: "하차" }[state.kind];
+    const dayTxt = state.days.length === 7 ? "모든 요일" : state.days.length ? WD.filter((d) => state.days.includes(d)).join("·") + "요일" : "요일 없음";
+    $("basis").textContent = `${dayTxt} ${state.h0}시~${state.h1}시 · ${kindTxt} · ${ndays}일 평균`;
+
+    const cand = state.stations.map((s, i) => ({ name: s, color: `var(${SERIES[i % SERIES.length]})`, row: rank.find((r) => norm(r.st) === norm(s)) }));
+    const candSet = new Set(cand.filter((c) => c.row).map((c) => c.row.st));
+
+    // cards
+    $("cards").innerHTML = cand.length ? cand.map((c) => {
+      if (!c.row) return `<div class="card missing"><div class="name"><i style="background:${c.color}"></i>${esc(c.name)}</div><div>데이터에서 이 이름의 역을 찾지 못했습니다. 위 입력칸 목록에서 정확한 이름을 골라 주세요.</div></div>`;
+      const peaks = c.row.hours.map((v, h) => [h, v]).filter(([h]) => h >= state.h0 && h < state.h1).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      return `<div class="card"><div class="top"><div class="name"><i style="background:${c.color}"></i>${esc(c.row.st)}</div><div class="rank">전체 <b class="num">${c.row.rank}</b>위</div></div>
+        <div><span class="big num">${fmt(c.row.avg)}</span> <span class="unit">명 / 하루</span></div>
+        <div class="peaks"><div class="peaks-title">가장 붐비는 시간 (1시간 동안 타고 내리는 사람)</div>${peaks.map(([h, v], i) => `<div class="peak"><span><span class="rk">${i + 1}.</span>${h}시~${h + 1}시</span><span class="num">약 ${fmt(v)}명</span></div>`).join("")}</div></div>`;
+    }).join("") : `<div class="card missing">후보 역을 위에서 추가해 주세요.</div>`;
+
+    drawLines(cand.filter((c) => c.row), hoursSeen);
+    drawBars(rank, candSet);
+
+    const q = norm($("q").value || "");
+    $("tbody").innerHTML = rank.filter((r) => !q || norm(r.st).includes(q)).map((r) => {
+      let bh = state.h0, bv = -1; for (let h = state.h0; h < state.h1; h++) if (r.hours[h] > bv) { bv = r.hours[h]; bh = h; }
+      return `<tr class="${candSet.has(r.st) ? "cand" : ""}"><td class="num">${r.rank}</td><td>${esc(r.st)}</td><td class="r num">${fmt(r.avg)}</td><td class="r">${bh}시 <span class="num">(${fmt(bv)})</span></td></tr>`;
+    }).join("");
+  }
+
+  function drawBars(rank, candSet) {
+    const top = rank.slice(0, 15);
+    const extra = rank.filter((r) => candSet.has(r.st) && r.rank > 15);
+    const items = [...top, ...(extra.length ? [null, ...extra] : [])];
+    const W = 760, L = 112, R = 70, rowH = 26, H = items.length * rowH + 8;
+    const max = Math.max(1, ...rank.slice(0, 1).map((r) => r.avg));
+    const x = (v) => L + (v / max) * (W - L - R);
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="역별 하루 평균 순위">`;
+    items.forEach((r, i) => {
+      const y = i * rowH + 4;
+      if (!r) { s += `<text x="${L}" y="${y + 17}">⋯ 후보 역 중 15위 밖</text>`; return; }
+      const c = candSet.has(r.st);
+      s += `<text class="lbl" x="${L - 10}" y="${y + 17}" text-anchor="end" style="${c ? "font-weight:700" : ""}">${r.rank}. ${esc(r.st)}</text>`;
+      s += `<rect x="${L}" y="${y + 4}" width="${Math.max(1, x(r.avg) - L)}" height="${rowH - 9}" rx="3" fill="${c ? "var(--accent)" : "var(--bar)"}"></rect>`;
+      s += `<text class="val" x="${x(r.avg) + 6}" y="${y + 17}">${fmt(r.avg)}</text>`;
+    });
+    $("barBox").innerHTML = s + "</svg>";
+  }
+
+  function drawLines(cands, hoursSeen) {
+    $("legend").innerHTML = cands.map((c) => `<span><i style="background:${c.color}"></i>${esc(c.row.st)}</span>`).join("");
+    const hs = [...hoursSeen].sort((a, b) => a - b);
+    let hMin = hs.length ? Math.min(...hs.filter((h) => h >= 4), 5) : 5; const hMax = 23;
+    if (!isFinite(hMin)) hMin = 5;
+    const W = 760, H = 300, L = 54, R = 16, T = 14, B = 34;
+    const max = Math.max(1, ...cands.flatMap((c) => c.row.hours.slice(hMin, hMax + 1)));
+    const step = niceStep(max / 4), yMax = Math.ceil(max / step) * step;
+    const x = (h) => L + ((h - hMin) / (hMax - hMin)) * (W - L - R);
+    const y = (v) => T + (1 - v / yMax) * (H - T - B);
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="후보 역 시간대별 하루 평균">`;
+    const a = Math.max(state.h0, hMin), b = Math.min(state.h1 - 1, hMax);
+    if (b >= a) s += `<rect x="${x(a) - 8}" y="${T}" width="${x(b) - x(a) + 16}" height="${H - T - B}" fill="var(--accent-soft)"></rect>`;
+    for (let v = 0; v <= yMax; v += step) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"></line><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" class="num">${v >= 1000 ? (v / 1000).toLocaleString("ko-KR") + "천" : v}</text>`;
+    for (let h = hMin; h <= hMax; h++) if ((h - hMin) % 2 === 0 || h === hMax) s += `<text x="${x(h)}" y="${H - 12}" text-anchor="middle">${h}시</text>`;
+    cands.forEach((c) => {
+      const pts = []; for (let h = hMin; h <= hMax; h++) pts.push(`${x(h).toFixed(1)},${y(c.row.hours[h]).toFixed(1)}`);
+      s += `<polyline points="${pts.join(" ")}" fill="none" stroke="${c.color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+      let ph = state.h0; for (let h = state.h0; h < state.h1; h++) if (c.row.hours[h] > c.row.hours[ph]) ph = h;
+      if (ph >= hMin && ph <= hMax) s += `<circle cx="${x(ph)}" cy="${y(c.row.hours[ph])}" r="4.5" fill="${c.color}" stroke="var(--surface)" stroke-width="2"></circle>`;
+    });
+    s += `<line id="guide" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--muted)" stroke-dasharray="3 3" visibility="hidden"></line>`;
+    for (let h = hMin; h <= hMax; h++) s += `<rect data-h="${h}" x="${x(h) - (W - L - R) / (hMax - hMin) / 2}" y="${T}" width="${(W - L - R) / (hMax - hMin)}" height="${H - T - B}" fill="transparent"></rect>`;
+    const box = $("lineBox");
+    box.innerHTML = s + `</svg><div class="tip" id="tip" hidden></div>`;
+    if (!cands.length) return;
+    const svg = box.querySelector("svg"), tip = $("tip"), guide = box.querySelector("#guide");
+    svg.addEventListener("pointermove", (e) => {
+      const r = e.target.closest("rect[data-h]"); if (!r) return;
+      const h = +r.dataset.h, rect = svg.getBoundingClientRect(), k = rect.width / W;
+      guide.setAttribute("x1", x(h)); guide.setAttribute("x2", x(h)); guide.setAttribute("visibility", "visible");
+      tip.innerHTML = `<b>${h}시~${h + 1}시</b>` + cands.map((c) => `<div><span>${esc(c.row.st)}</span><span class="num">${fmt(c.row.hours[h])}</span></div>`).join("");
+      tip.hidden = false;
+      tip.style.left = Math.min(Math.max(x(h) * k, 80), rect.width - 80) + "px"; tip.style.top = T * k + "px";
+    });
+    svg.addEventListener("pointerleave", () => { tip.hidden = true; guide.setAttribute("visibility", "hidden"); });
+  }
+  function niceStep(v) { const p = Math.pow(10, Math.floor(Math.log10(v || 1))); const m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
+
+  /* ---------- files ---------- */
+  const msg = (t, err) => { $("msg").textContent = t; $("msg").className = "msg" + (err ? " err" : ""); };
+  function renderFiles() {
+    $("files").innerHTML = sources.map((s) => `<div class="file"><div><b>${esc(s.name)}</b><div class="meta num">${s.info.from} ~ ${s.info.to} · ${s.info.days}일 · 역 ${s.info.stations}개</div></div></div>`).join("");
+  }
+  function useSources() {
+    sample = sources.length === 0;
+    if (sample) merged = makeSample(); else mergeAll();
+    renderFiles(); buildControls(); render();
+  }
+  useSources();
+  (async () => {
+    try {
+      const list = await (await fetch("files.json?t=" + Date.now(), { cache: "no-store" })).json();
+      if (!list.length) { msg("저장소 '부산데이터' 폴더에 CSV가 없어서 예시 숫자를 보여 주고 있습니다.", true); return; }
+      msg("파일 읽는 중…");
+      const loaded = [];
+      for (const f of list) {
+        try {
+          const map = parseTable(parseCSV(decode(await (await fetch("부산데이터/" + encodeURIComponent(f.name))).arrayBuffer())));
+          loaded.push({ id: f.name, name: f.name, uploadedAt: String(f.mtime).padStart(16, "0"), map, info: summarize(map) });
+        } catch (e) { msg(`${f.name}: ${e.message}`, true); }
+      }
+      sources = loaded; useSources();
+      if (loaded.length === list.length) msg("");
+    } catch (e) { msg("파일 목록을 불러오지 못했습니다. 잠시 뒤 새로고침해 주세요.", true); }
+  })();
+})();
+</script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const n = (v) => Number(String(v ?? "").replace(/,/g, ""));
+  const fmt = (v) => Math.round(v).toLocaleString("ko-KR");
+  const man = (v) => (v >= 10000 ? (v / 10000).toLocaleString("ko-KR", { maximumFractionDigits: 1 }) + "만" : fmt(v));
+  const LVC = { "여유": "var(--ok)", "보통": "var(--mid)", "약간붐빔": "var(--warn)", "붐빔": "var(--bad)" };
+  const lvKey = (l) => String(l || "").replace(/\s/g, "");
+  const SERIES = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"];
+
+  /* pages */
+  const TITLES = { busan: "부산 지하철 승하차", seoul: "서울 지하철 실시간" };
+  let started = false;
+  function show(pg) {
+    if (!TITLES[pg]) pg = "busan";
+    for (const p of ["busan", "seoul"]) { $("pg-" + p).hidden = p !== pg; $("tab-" + p).setAttribute("aria-selected", p === pg); }
+    $("pgTitle").textContent = TITLES[pg]; document.title = TITLES[pg];
+    try { localStorage.setItem("page", pg); } catch (e) {}
+    if (location.hash !== "#" + pg) history.replaceState(null, "", "#" + pg);
+    if (pg === "seoul" && !started) { started = true; load(); setInterval(load, 60000); }
+  }
+  document.querySelector(".tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-page]"); if (b) show(b.dataset.page); });
+  document.addEventListener("keydown", (e) => {
+    if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)) return;
+    if (e.key === "ArrowRight") show("seoul"); else if (e.key === "ArrowLeft") show("busan");
+  });
+
+  /* places */
+  let places = [];
+  function chips() {
+    $("places").innerHTML = places.map((p, i) => `<span class="stchip" style="padding-right:10px"><i style="background:var(${SERIES[i % SERIES.length]})"></i>${esc(p)}</span>`).join("");
+  }
+  $("sRefresh").addEventListener("click", () => load());
+
+  function subway(list) {
+    const rows = [];
+    for (const s of (list || []).slice(0, 4)) {
+      const ks = Object.keys(s);
+      const nameK = ks.find((k) => /STN_NM/.test(k)), lineK = ks.find((k) => /LINE/.test(k) && !/ENG/.test(k));
+      const g = {};
+      for (const k of ks) {
+        if (!/GTON|GTOFF/.test(k) || s[k] === "" || isNaN(n(s[k]))) continue;
+        const base = k.replace(/_(MIN|MAX)$/, "");
+        (g[base] ||= {})[/_MAX$/.test(k) ? "max" : /_MIN$/.test(k) ? "min" : "v"] = n(s[k]);
+      }
+      const label = (k) => {
+        const m = k.match(/(\d+)WTHN/);
+        const p = /ACML/.test(k) ? "오늘 누적" : m ? `최근 ${m[1]}분` : "";
+        return p ? `${p} ${/GTOFF/.test(k) ? "하차" : "승차"}` : k;
+      };
+      const items = Object.entries(g).map(([k, v]) => {
+        const val = v.v != null ? fmt(v.v) : v.min != null && v.max != null && v.min !== v.max ? `${fmt(v.min)}~${fmt(v.max)}` : fmt(v.max ?? v.min);
+        return `<div class="subrow"><span class="k">${esc(label(k))}</span><span class="num">약 ${val}명</span></div>`;
+      });
+      if (items.length) rows.push(`<div class="subrow"><b>${esc(nameK ? s[nameK] : "역")}${/역$/.test(nameK ? s[nameK] : "") ? "" : "역"}</b><span class="k">${lineK ? esc(s[lineK]) : ""}</span></div>${items.join("")}`);
+    }
+    return rows.length ? `<div class="subline"><div class="peaks-title">근처 지하철역 승하차</div>${rows.join("")}</div>` : "";
+  }
+
+  let busy = false;
+  async function load() {
+    if (busy) return; busy = true;
+    $("sBasis").textContent = "불러오는 중…";
+    try {
+      const d = await (await fetch("seoul.json?t=" + Date.now(), { cache: "no-store" })).json();
+      places = d.places.map((p) => p.place); chips();
+      $("sNotice").hidden = !d.needKey;
+      if (d.needKey) {
+        $("sNotice").innerHTML = "<b>서울 인증키가 아직 연결되지 않았습니다</b><span class='hint'>GitHub 저장소 Settings → Secrets and variables → Actions 에 SEOUL_KEY 를 넣고 단축어 버튼을 다시 눌러 주세요.</span>";
+        $("sCards").innerHTML = ""; $("sFcst").innerHTML = ""; $("sBasis").textContent = ""; return;
+      }
+      const ok = d.places.filter((p) => !p.error);
+      const t = ok.map((p) => p.time).filter(Boolean).sort().pop();
+      $("sBasis").textContent = t ? `${t.slice(11, 16)} 기준 · ${d.places[0]?.fetched || ""}에 확인` : "";
+      $("sCards").innerHTML = d.places.map((p, i) => {
+        const dot = `<i style="background:var(${SERIES[i % SERIES.length]})"></i>`;
+        if (p.error) return `<div class="card missing"><div class="name">${dot}${esc(p.place)}</div><div>${esc(p.error)}</div></div>`;
+        return `<div class="card"><div class="top"><div class="name">${dot}${esc(p.place)}</div><span class="lv lv-${lvKey(p.level)}">${esc(p.level || "정보 없음")}</span></div>
+          <div><div class="unit">지금 주변에 있는 사람</div><span class="big num">${man(n(p.min))}~${man(n(p.max))}</span> <span class="unit">명</span></div>
+          ${p.message ? `<div class="msgline">${esc(p.message)}</div>` : ""}
+          ${subway(p.subway)}</div>`;
+      }).join("") || `<div class="card missing">위에서 장소를 추가해 주세요.</div>`;
+      $("sFcst").innerHTML = ok.filter((p) => p.forecast?.length).map((p) => `<div style="display:grid;grid-template-columns:minmax(90px,140px) 1fr;gap:10px;align-items:center">
+        <span style="font-weight:600;font-size:14px">${esc(p.place)}</span>
+        <div class="strip">${p.forecast.slice(0, 12).map((f) => `<div title="${esc(f.time)} · ${esc(f.level)} · ${fmt(n(f.min))}~${fmt(n(f.max))}명" style="background:${LVC[lvKey(f.level)] || "var(--bar)"}">${esc(String(f.time || "").slice(11, 13))}</div>`).join("")}</div></div>`).join("")
+        || `<span class="hint">예상 자료가 없습니다.</span>`;
+    } catch (e) {
+      $("sBasis").textContent = "";
+      $("sNotice").hidden = false; $("sNotice").innerHTML = "<b>아직 서울 자료가 없습니다</b><span class='hint'>단축어 버튼을 눌러 처음 한 번 받아 주세요. 1~2분 뒤 이 화면이 저절로 바뀝니다.</span>";
+    } finally { busy = false; }
+  }
+
+  chips();
+  let first = (location.hash || "").slice(1);
+  if (!first) { try { first = localStorage.getItem("page") || "busan"; } catch (e) { first = "busan"; } }
+  show(first);
+})();
+</script>
+</body>
+</html>
+
