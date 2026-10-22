@@ -2,7 +2,7 @@
 """
 GitHub Actions에서 실행: 웹페이지(_site 폴더)를 만든다.
 
-- index.html, '부산데이터' CSV, files.json(부산 파일 목록)
+- index.html, fonts(KoPubWorld 돋움 웹폰트), '부산데이터' CSV, files.json(부산 파일 목록)
 - seoul.json: '서울장소.txt' 장소들의 지금 서울 실시간 도시데이터 (인증키는 SEOUL_KEY 비밀값)
 """
 import json
@@ -34,6 +34,7 @@ def main():
     shutil.rmtree(OUT, ignore_errors=True)
     (OUT / "부산데이터").mkdir(parents=True)
     shutil.copy(live.HERE / "index.html", OUT / "index.html")
+    shutil.copytree(live.HERE / "fonts", OUT / "fonts")
     live.DATA_DIR.mkdir(exist_ok=True)
     for f in live.busan_files():
         shutil.copy(live.DATA_DIR / f["name"], OUT / "부산데이터" / f["name"])
