@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>지하철 승하차 대시보드</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
 /* Layout: one column; controls bar, candidate station cards, two charts, full ranking, data shelf. Accent = Busan Line 1 orange. */
 :root {
@@ -20,19 +19,20 @@
   --bar: #a8b2bd;
   --danger: #c0392b;
   --s1: #e2600a; --s2: #5f9e2f; --s3: #a87b00; --s4: #2271c3; --s5: #8a4fa3; --s6: #1a9a97;
-  --font: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --num: var(--font);
+  --axis: #4a5560;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #12161b; --surface: #1a2027; --fg: #e8ecf0; --muted: #98a3ae; --line: #2c343d; --soft: #232a32;
   --accent: #ff8a3d; --accent-soft: #3a2517; --bar: #56616d; --danger: #ff7b6b;
   --s1: #ff8a3d; --s2: #8fcb5c; --s3: #d9b13c; --s4: #5aa6f0; --s5: #c08ad8; --s6: #4fc9c5;
-  color-scheme: dark; } }
+  --axis: #b3bcc6; color-scheme: dark; } }
 :root[data-theme="dark"] {
   --bg: #12161b; --surface: #1a2027; --fg: #e8ecf0; --muted: #98a3ae; --line: #2c343d; --soft: #232a32;
   --accent: #ff8a3d; --accent-soft: #3a2517; --bar: #56616d; --danger: #ff7b6b;
   --s1: #ff8a3d; --s2: #8fcb5c; --s3: #d9b13c; --s4: #5aa6f0; --s5: #c08ad8; --s6: #4fc9c5;
-  color-scheme: dark; }
+  --axis: #b3bcc6; color-scheme: dark; }
 
 [hidden] { display: none !important; }
 body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.55; }
@@ -86,12 +86,12 @@ select, input[type="text"] { border: 1px solid var(--line); background: var(--su
 .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
 .hint { font-size: 13px; color: var(--muted); }
 svg { display: block; width: 100%; height: auto; overflow: visible; }
-svg text { fill: var(--muted); font-family: var(--font); font-size: 12px; }
-svg .lbl { fill: var(--fg); font-size: 13px; }
-svg .val { fill: var(--fg); font-family: var(--num); font-size: 12px; }
+svg text { fill: var(--axis); font-family: var(--font); font-size: 13px; font-variant-numeric: tabular-nums; }
+svg .lbl { fill: var(--fg); font-size: 14px; }
+svg .val { fill: var(--fg); font-size: 13px; font-weight: 600; }
 svg .grid { stroke: var(--line); stroke-width: 1; }
 .chartbox { position: relative; }
-.tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 13px; padding: 8px 10px; border-radius: 8px;
+.tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 14px; font-variant-numeric: tabular-nums; padding: 8px 10px; border-radius: 8px;
   white-space: nowrap; transform: translate(-50%, -100%); z-index: 2; }
 .tip div { display: flex; gap: 10px; justify-content: space-between; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
@@ -120,7 +120,7 @@ tr.cand td { background: var(--accent-soft); font-weight: 600; }
 .msg.err { color: var(--danger); }
 ol.steps { margin: 0; padding-left: 20px; font-size: 14px; color: var(--muted); display: grid; gap: 2px; }
 a { color: var(--accent); }
-@media (max-width: 520px) { h1 { font-size: 22px; } .label { min-width: 100%; } }
+@media (max-width: 520px) { h1 { font-size: 22px; } .label { min-width: 100%; } select, input[type="text"] { font-size: 16px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 /* tabs: two pages, Busan and Seoul */
@@ -137,12 +137,14 @@ a { color: var(--accent); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ok: #5cc982; --mid: #e3c240; --warn: #ff9c45; --bad: #ff6b6b; } }
 :root[data-theme="dark"] { --ok: #5cc982; --mid: #e3c240; --warn: #ff9c45; --bad: #ff6b6b; }
 .lv { font-size: 13px; font-weight: 700; padding: 2px 10px; border-radius: 999px; color: #fff; background: var(--muted); white-space: nowrap; }
-.lv-여유 { background: var(--ok); } .lv-보통 { background: var(--mid); } .lv-약간붐빔 { background: var(--warn); } .lv-붐빔 { background: var(--bad); }
+.lv-여유 { background: var(--ok); } .lv-보통 { background: var(--mid); color: #1c232b; } .lv-약간붐빔 { background: var(--warn); } .lv-붐빔 { background: var(--bad); }
 .legend-lv { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
 .legend-lv span { display: inline-flex; align-items: center; gap: 6px; }
 .legend-lv i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; }
-.strip div { height: 24px; border-radius: 4px; font-size: 11px; color: #fff; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+.fc-row { display: grid; grid-template-columns: minmax(90px, 140px) minmax(0, 1fr); gap: 10px; align-items: center; }
+@media (max-width: 520px) { .fc-row { grid-template-columns: minmax(0, 1fr); gap: 4px; } .strip { gap: 2px; } }
+.strip div { min-width: 0; height: 28px; border-radius: 4px; font-size: 12px; font-weight: 600; color: #fff; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
 .subline { display: grid; gap: 2px; border-top: 1px solid var(--line); padding-top: 8px; }
 .subrow { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
 .subrow .k { color: var(--muted); white-space: nowrap; }
@@ -165,12 +167,11 @@ a { color: var(--accent); }
   </header>
 
   <div id="pg-busan" class="page" role="tabpanel" aria-labelledby="tab-busan">
-  <p class="sub page-sub" id="coverage">데이터를 불러오는 중…</p>
+  <p class="sub page-sub" id="coverage">불러오는 중…</p>
   <span class="badge" id="modeBadge" hidden>예시 데이터</span>
 
   <div class="sample-note" id="sampleNote" hidden>
-    지금 보이는 숫자는 <b>화면 모양을 보여주기 위한 예시</b>입니다. 실제 역 인원이 아닙니다.
-    GitHub 저장소의 <b>부산데이터</b> 폴더에 공공데이터포털 CSV를 올리면 1~2분 뒤 실제 숫자로 바뀝니다.
+    <b>예시 데이터</b> · 실제 인원이 아닙니다. 저장소 '부산데이터' 폴더에 CSV를 올리면 1~2분 뒤 실제 수치로 바뀝니다.
   </div>
 
   <section class="controls" aria-label="보는 조건">
@@ -182,7 +183,7 @@ a { color: var(--accent); }
       <span class="label">요일</span>
       <div class="group" id="days"></div>
       <div class="group">
-        <button class="chip ghost" data-preset="지금" title="오늘 요일과 지금 시각으로 맞춥니다">지금 이 시간</button>
+        <button class="chip ghost" data-preset="지금" title="오늘 요일 · 현재 시각">지금</button>
         <button class="chip ghost" data-preset="평일">평일</button>
         <button class="chip ghost" data-preset="주말">주말</button>
         <button class="chip ghost" data-preset="전체">전체</button>
@@ -207,7 +208,7 @@ a { color: var(--accent); }
       <span class="label">후보 역</span>
       <div class="group" id="stations"></div>
       <div class="group">
-        <input type="text" id="addSt" list="stList" placeholder="역 이름 추가" aria-label="후보 역 추가">
+        <input type="text" id="addSt" list="stList" placeholder="역 추가" aria-label="후보 역 추가">
         <datalist id="stList"></datalist>
       </div>
     </div>
@@ -215,7 +216,7 @@ a { color: var(--accent); }
 
   <section aria-label="후보 역 요약" style="display:grid;gap:12px">
     <div class="panel-head">
-      <h2>후보 역 한눈에</h2>
+      <h2>후보 역</h2>
       <span class="hint" id="basis"></span>
     </div>
     <div class="cards" id="cards"></div>
@@ -224,7 +225,7 @@ a { color: var(--accent); }
   <section class="panel">
     <div class="panel-head">
       <h2>시간대별 하루 평균</h2>
-      <span class="hint">음영 = 고른 시간대 · 그래프 위에 올리면 숫자가 보입니다</span>
+      <span class="hint">음영: 선택한 시간대 · 누르면 수치 표시</span>
     </div>
     <div class="legend" id="legend"></div>
     <div class="chartbox" id="lineBox"></div>
@@ -233,15 +234,15 @@ a { color: var(--accent); }
   <section class="panel">
     <div class="panel-head">
       <h2>역별 하루 평균 순위</h2>
-      <span class="hint">상위 15개 · 주황색 = 후보 역</span>
+      <span class="hint">상위 15개 · 주황: 후보 역</span>
     </div>
     <div class="chartbox" id="barBox"></div>
   </section>
 
   <section class="panel">
     <div class="panel-head">
-      <h2>전체 역 순위표</h2>
-      <input type="text" id="q" placeholder="역 이름 찾기" aria-label="역 이름 찾기">
+      <h2>전체 역 순위</h2>
+      <input type="text" id="q" placeholder="역 검색" aria-label="역 검색">
     </div>
     <div class="tablebox"><table><thead><tr><th>순위</th><th>역</th><th style="text-align:right">하루 평균</th><th style="text-align:right">가장 붐비는 시간</th></tr></thead><tbody id="tbody"></tbody></table></div>
   </section>
@@ -249,27 +250,25 @@ a { color: var(--accent); }
   <section class="panel" id="dataPanel">
     <div class="panel-head">
       <h2>데이터 파일</h2>
-      <span class="hint">GitHub 저장소 '부산데이터' 폴더의 CSV를 읽습니다</span>
+      <span class="hint">저장소 '부산데이터' 폴더</span>
     </div>
     <div class="msg" id="msg" role="status"></div>
     <div class="files" id="files"></div>
     <ol class="steps">
-      <li><a href="https://www.data.go.kr/data/3057229/fileData.do" target="_blank" rel="noopener">공공데이터포털 · 부산교통공사_시간대별 승하차인원</a>에서 새 달 CSV 내려받기 (매달 말 올라옵니다)</li>
-      <li>GitHub 저장소의 '부산데이터' 폴더에 올리기 (Add file → Upload files · 예전 파일은 그대로 두면 합쳐집니다)</li>
-      <li>1~2분 뒤 이 화면 새로고침</li>
+      <li><a href="https://www.data.go.kr/data/3057229/fileData.do" target="_blank" rel="noopener">공공데이터포털 · 부산교통공사_시간대별 승하차인원</a>에서 CSV 내려받기 (매달 말 갱신)</li>
+      <li>저장소 '부산데이터' 폴더에 올리기 (Add file → Upload files)</li>
+      <li>1~2분 뒤 새로고침</li>
     </ol>
   </section>
   </div>
 
   <div id="pg-seoul" class="page" role="tabpanel" aria-labelledby="tab-seoul" hidden>
-    <p class="sub page-sub" id="sSub">서울시 실시간 도시데이터 · 단축어 버튼을 누르거나 1시간마다 새로 받습니다</p>
-
     <section class="controls" aria-label="서울 장소">
       <div class="row">
         <span class="label">장소</span>
         <div class="group" id="places"></div>
         <div class="group">
-          <span class="hint">장소는 저장소의 '서울장소.txt'에서 바꿉니다</span>
+          <span class="hint">장소 변경: 저장소 '서울장소.txt'</span>
         </div>
       </div>
       <div class="row">
@@ -280,7 +279,7 @@ a { color: var(--accent); }
           <span><i style="background:var(--warn)"></i>약간 붐빔</span>
           <span><i style="background:var(--bad)"></i>붐빔</span>
         </div>
-        <button class="chip ghost" id="sRefresh">화면 다시 읽기</button>
+        <button class="chip ghost" id="sRefresh">새로고침</button>
       </div>
     </section>
 
@@ -288,7 +287,7 @@ a { color: var(--accent); }
 
     <section aria-label="서울 장소별 지금" style="display:grid;gap:12px">
       <div class="panel-head">
-        <h2>지금 이 장소들</h2>
+        <h2>실시간 혼잡도</h2>
         <span class="hint" id="sBasis"></span>
       </div>
       <div class="cards" id="sCards"></div>
@@ -296,13 +295,14 @@ a { color: var(--accent); }
 
     <section class="panel">
       <div class="panel-head">
-        <h2>앞으로 12시간 예상 혼잡도</h2>
-        <span class="hint">칸 하나 = 1시간 · 숫자 = 시각</span>
+        <h2>12시간 예측</h2>
+        <span class="hint">칸 숫자: 시각</span>
       </div>
       <div id="sFcst" style="display:grid;gap:10px"></div>
     </section>
 
-    <p class="hint">혼잡도는 평소(최근 28일 평균) 대비 지금 인구로 정해집니다. 역 승하차는 티머니 기준 약 5분마다 갱신되며 새벽 1~5시에는 나오지 않습니다. 장소('서울장소.txt') 이름은 서울시가 정한 주요 장소 120곳 이름 그대로 써야 합니다 (예: 강남역, 서울역, 홍대입구역(2호선), 잠실역, 신촌·이대역, 명동 관광특구).</p>
+    <p class="hint">혼잡도는 최근 28일 평균과 비교한 현재 인구 기준입니다. 역 승하차는 티머니 집계로 약 5분마다 갱신되고, 새벽 1~5시에는 집계되지 않습니다.<br>
+    '서울장소.txt'에는 서울시 주요 장소 120곳의 공식 이름을 한 줄에 하나씩 적습니다. 예: 강남역 · 홍대입구역(2호선) · 신촌·이대역 · 명동 관광특구</p>
   </div>
 </div>
 
@@ -362,7 +362,7 @@ a { color: var(--accent); }
   // returns Map key "date|station|hour" -> {on, off, all}
   function parseTable(rows) {
     const hi = rows.findIndex((r) => findCol(r, ["역명", "역이름", "sta_nm", "station"]) >= 0);
-    if (hi < 0) throw new Error("역 이름 열을 찾지 못했습니다. 부산교통공사 시간대별 승하차인원 파일인지 확인해 주세요.");
+    if (hi < 0) throw new Error("역 이름 열을 찾지 못했습니다. 부산교통공사 시간대별 승하차인원 파일인지 확인하세요.");
     const hdr = rows[hi].map((c) => String(c).replace(/^﻿/, "").trim());
     const cSt = findCol(hdr, ["역명", "역이름", "sta_nm", "station"]);
     const cDate = findCol(hdr, ["년월일", "일자", "날짜", "ymd", "date"]);
@@ -512,7 +512,7 @@ a { color: var(--accent); }
   function render() {
     const has = merged.size > 0;
     $("sampleNote").hidden = !sample; $("modeBadge").hidden = !sample;
-    if (!has) { $("coverage").textContent = "아직 데이터가 없습니다. 아래 데이터 파일 칸에 CSV를 넣어 주세요."; return; }
+    if (!has) { $("coverage").textContent = "데이터 없음 · 아래 '데이터 파일' 참고"; return; }
     const { rank, ndays, hoursSeen } = compute();
     const all = [...merged.keys()].map((k) => k.slice(0, 10)).sort();
     const sum = { from: all[0], to: all[all.length - 1] };
@@ -526,15 +526,15 @@ a { color: var(--accent); }
 
     // cards
     $("cards").innerHTML = cand.length ? cand.map((c) => {
-      if (!c.row) return `<div class="card missing"><div class="name"><i style="background:${c.color}"></i>${esc(c.name)}</div><div>데이터에서 이 이름의 역을 찾지 못했습니다. 위 입력칸 목록에서 정확한 이름을 골라 주세요.</div></div>`;
+      if (!c.row) return `<div class="card missing"><div class="name"><i style="background:${c.color}"></i>${esc(c.name)}</div><div>데이터에 없는 역 이름입니다. 입력칸 목록에서 다시 고르세요.</div></div>`;
       const peaks = c.row.hours.map((v, h) => [h, v]).filter(([h]) => h >= state.h0 && h < state.h1).sort((a, b) => b[1] - a[1]).slice(0, 3);
       return `<div class="card"><div class="top"><div class="name"><i style="background:${c.color}"></i>${esc(c.row.st)}</div><div class="rank">전체 <b class="num">${c.row.rank}</b>위</div></div>
-        <div><span class="big num">${fmt(c.row.avg)}</span> <span class="unit">명 / 하루</span></div>
-        <div class="peaks"><div class="peaks-title">가장 붐비는 시간 (1시간 동안 타고 내리는 사람)</div>${peaks.map(([h, v], i) => `<div class="peak"><span><span class="rk">${i + 1}.</span>${h}시~${h + 1}시</span><span class="num">약 ${fmt(v)}명</span></div>`).join("")}</div></div>`;
-    }).join("") : `<div class="card missing">후보 역을 위에서 추가해 주세요.</div>`;
+        <div><span class="big num">${fmt(c.row.avg)}</span> <span class="unit">명/일</span></div>
+        <div class="peaks"><div class="peaks-title">붐비는 시간 (시간당 인원)</div>${peaks.map(([h, v], i) => `<div class="peak"><span><span class="rk">${i + 1}.</span>${h}시~${h + 1}시</span><span class="num">약 ${fmt(v)}명</span></div>`).join("")}</div></div>`;
+    }).join("") : `<div class="card missing">후보 역 없음</div>`;
 
-    drawLines(cand.filter((c) => c.row), hoursSeen);
-    drawBars(rank, candSet);
+    lastCharts = { cands: cand.filter((c) => c.row), hoursSeen, rank, candSet };
+    drawCharts();
 
     const q = norm($("q").value || "");
     $("tbody").innerHTML = rank.filter((r) => !q || norm(r.st).includes(q)).map((r) => {
@@ -543,43 +543,65 @@ a { color: var(--accent); }
     }).join("");
   }
 
-  function drawBars(rank, candSet) {
+  // charts are drawn at the box's real pixel width so text stays at its CSS size on phones
+  let lastCharts = null, drawnW = 0;
+  const boxW = (el) => Math.round(el.clientWidth) || 0;
+  function drawCharts() {
+    if (!lastCharts) return;
+    const w = boxW($("lineBox")); if (!w) return;
+    drawnW = w;
+    drawLines(lastCharts.cands, lastCharts.hoursSeen, w);
+    drawBars(lastCharts.rank, lastCharts.candSet, w);
+  }
+  new ResizeObserver(() => { if (boxW($("lineBox")) !== drawnW) drawCharts(); }).observe($("lineBox"));
+  let measureCtx;
+  function textW(t, px, weight) {
+    measureCtx ||= document.createElement("canvas").getContext("2d");
+    measureCtx.font = `${weight} ${px}px ${cssVar("--font")}`;
+    return measureCtx.measureText(t).width;
+  }
+
+  function drawBars(rank, candSet, W) {
     const top = rank.slice(0, 15);
     const extra = rank.filter((r) => candSet.has(r.st) && r.rank > 15);
     const items = [...top, ...(extra.length ? [null, ...extra] : [])];
-    const W = 760, L = 112, R = 70, rowH = 26, H = items.length * rowH + 8;
+    const labels = items.filter(Boolean).map((r) => `${r.rank}. ${r.st}`);
+    const L = Math.min(Math.ceil(Math.max(60, ...labels.map((t) => textW(t, 14, 700)))) + 12, W * 0.45);
+    const R = Math.ceil(textW(fmt(rank[0]?.avg || 0), 13, 600)) + 12;
+    const rowH = 30, H = items.length * rowH + 8;
     const max = Math.max(1, ...rank.slice(0, 1).map((r) => r.avg));
     const x = (v) => L + (v / max) * (W - L - R);
-    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="역별 하루 평균 순위">`;
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="역별 하루 평균 순위">`;
     items.forEach((r, i) => {
       const y = i * rowH + 4;
-      if (!r) { s += `<text x="${L}" y="${y + 17}">⋯ 후보 역 중 15위 밖</text>`; return; }
+      if (!r) { s += `<text x="${L}" y="${y + 19}">⋯ 15위 밖 후보 역</text>`; return; }
       const c = candSet.has(r.st);
-      s += `<text class="lbl" x="${L - 10}" y="${y + 17}" text-anchor="end" style="${c ? "font-weight:700" : ""}">${r.rank}. ${esc(r.st)}</text>`;
-      s += `<rect x="${L}" y="${y + 4}" width="${Math.max(1, x(r.avg) - L)}" height="${rowH - 9}" rx="3" fill="${c ? "var(--accent)" : "var(--bar)"}"></rect>`;
-      s += `<text class="val" x="${x(r.avg) + 6}" y="${y + 17}">${fmt(r.avg)}</text>`;
+      s += `<text class="lbl" x="${L - 10}" y="${y + 19}" text-anchor="end" style="${c ? "font-weight:700" : ""}">${r.rank}. ${esc(r.st)}</text>`;
+      s += `<rect x="${L}" y="${y + 5}" width="${Math.max(1, x(r.avg) - L)}" height="${rowH - 10}" rx="3" fill="${c ? "var(--accent)" : "var(--bar)"}"></rect>`;
+      s += `<text class="val" x="${x(r.avg) + 6}" y="${y + 19}">${fmt(r.avg)}</text>`;
     });
     $("barBox").innerHTML = s + "</svg>";
   }
 
-  function drawLines(cands, hoursSeen) {
+  function drawLines(cands, hoursSeen, W) {
     $("legend").innerHTML = cands.map((c) => `<span><i style="background:${c.color}"></i>${esc(c.row.st)}</span>`).join("");
     const hs = [...hoursSeen].sort((a, b) => a - b);
     let hMin = hs.length ? Math.min(...hs.filter((h) => h >= 4), 5) : 5; const hMax = 23;
     if (!isFinite(hMin)) hMin = 5;
-    const W = 760, H = 300, L = 54, R = 16, T = 14, B = 34;
+    const narrow = W < 560;
+    const H = narrow ? 240 : 300, L = 46, R = 14, T = 14, B = 32, every = narrow ? 3 : 2;
     const max = Math.max(1, ...cands.flatMap((c) => c.row.hours.slice(hMin, hMax + 1)));
     const step = niceStep(max / 4), yMax = Math.ceil(max / step) * step;
     const x = (h) => L + ((h - hMin) / (hMax - hMin)) * (W - L - R);
     const y = (v) => T + (1 - v / yMax) * (H - T - B);
-    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="후보 역 시간대별 하루 평균">`;
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="후보 역 시간대별 하루 평균">`;
     const a = Math.max(state.h0, hMin), b = Math.min(state.h1 - 1, hMax);
     if (b >= a) s += `<rect x="${x(a) - 8}" y="${T}" width="${x(b) - x(a) + 16}" height="${H - T - B}" fill="var(--accent-soft)"></rect>`;
     for (let v = 0; v <= yMax; v += step) s += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"></line><text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" class="num">${v >= 1000 ? (v / 1000).toLocaleString("ko-KR") + "천" : v}</text>`;
-    for (let h = hMin; h <= hMax; h++) if ((h - hMin) % 2 === 0 || h === hMax) s += `<text x="${x(h)}" y="${H - 12}" text-anchor="middle">${h}시</text>`;
+    for (let h = hMin; h <= hMax; h++) if ((hMax - h) % every === 0) s += `<text x="${x(h)}" y="${H - 10}" text-anchor="middle">${h}시</text>`;
     cands.forEach((c) => {
       const pts = []; for (let h = hMin; h <= hMax; h++) pts.push(`${x(h).toFixed(1)},${y(c.row.hours[h]).toFixed(1)}`);
-      s += `<polyline points="${pts.join(" ")}" fill="none" stroke="${c.color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+      s += `<polyline points="${pts.join(" ")}" fill="none" stroke="${c.color}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
       let ph = state.h0; for (let h = state.h0; h < state.h1; h++) if (c.row.hours[h] > c.row.hours[ph]) ph = h;
       if (ph >= hMin && ph <= hMax) s += `<circle cx="${x(ph)}" cy="${y(c.row.hours[ph])}" r="4.5" fill="${c.color}" stroke="var(--surface)" stroke-width="2"></circle>`;
     });
@@ -589,16 +611,24 @@ a { color: var(--accent); }
     box.innerHTML = s + `</svg><div class="tip" id="tip" hidden></div>`;
     if (!cands.length) return;
     const svg = box.querySelector("svg"), tip = $("tip"), guide = box.querySelector("#guide");
-    svg.addEventListener("pointermove", (e) => {
+    const showTip = (e) => {
       const r = e.target.closest("rect[data-h]"); if (!r) return;
       const h = +r.dataset.h, rect = svg.getBoundingClientRect(), k = rect.width / W;
       guide.setAttribute("x1", x(h)); guide.setAttribute("x2", x(h)); guide.setAttribute("visibility", "visible");
       tip.innerHTML = `<b>${h}시~${h + 1}시</b>` + cands.map((c) => `<div><span>${esc(c.row.st)}</span><span class="num">${fmt(c.row.hours[h])}</span></div>`).join("");
       tip.hidden = false;
       tip.style.left = Math.min(Math.max(x(h) * k, 80), rect.width - 80) + "px"; tip.style.top = T * k + "px";
-    });
-    svg.addEventListener("pointerleave", () => { tip.hidden = true; guide.setAttribute("visibility", "hidden"); });
+    };
+    svg.addEventListener("pointermove", showTip);
+    svg.addEventListener("pointerdown", showTip);
+    // on touch, pointerleave fires right after the finger lifts; keep the tip until a tap elsewhere
+    svg.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") hideTip(); });
   }
+  function hideTip() {
+    const tip = $("tip"), guide = $("lineBox").querySelector("#guide");
+    if (tip) tip.hidden = true; if (guide) guide.setAttribute("visibility", "hidden");
+  }
+  document.addEventListener("pointerdown", (e) => { if (!$("lineBox").contains(e.target)) hideTip(); });
   function niceStep(v) { const p = Math.pow(10, Math.floor(Math.log10(v || 1))); const m = v / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; }
 
   /* ---------- files ---------- */
@@ -615,7 +645,7 @@ a { color: var(--accent); }
   (async () => {
     try {
       const list = await (await fetch("files.json?t=" + Date.now(), { cache: "no-store" })).json();
-      if (!list.length) { msg("저장소 '부산데이터' 폴더에 CSV가 없어서 예시 숫자를 보여 주고 있습니다.", true); return; }
+      if (!list.length) { msg("'부산데이터' 폴더에 CSV 없음 · 예시 데이터 표시 중", true); return; }
       msg("파일 읽는 중…");
       const loaded = [];
       for (const f of list) {
@@ -626,7 +656,7 @@ a { color: var(--accent); }
       }
       sources = loaded; useSources();
       if (loaded.length === list.length) msg("");
-    } catch (e) { msg("파일 목록을 불러오지 못했습니다. 잠시 뒤 새로고침해 주세요.", true); }
+    } catch (e) { msg("파일 목록을 불러오지 못했습니다. 잠시 후 새로고침하세요.", true); }
   })();
 })();
 </script>
@@ -699,27 +729,27 @@ a { color: var(--accent); }
       places = d.places.map((p) => p.place); chips();
       $("sNotice").hidden = !d.needKey;
       if (d.needKey) {
-        $("sNotice").innerHTML = "<b>서울 인증키가 아직 연결되지 않았습니다</b><span class='hint'>GitHub 저장소 Settings → Secrets and variables → Actions 에 SEOUL_KEY 를 넣고 단축어 버튼을 다시 눌러 주세요.</span>";
+        $("sNotice").innerHTML = "<b>서울 인증키 없음</b><span class='hint'>저장소 Settings → Secrets and variables → Actions에 SEOUL_KEY를 등록한 뒤 단축어 실행</span>";
         $("sCards").innerHTML = ""; $("sFcst").innerHTML = ""; $("sBasis").textContent = ""; return;
       }
       const ok = d.places.filter((p) => !p.error);
       const t = ok.map((p) => p.time).filter(Boolean).sort().pop();
-      $("sBasis").textContent = t ? `${t.slice(11, 16)} 기준 · ${d.places[0]?.fetched || ""}에 확인` : "";
+      $("sBasis").textContent = t ? `${t.slice(11, 16)} 기준` : "";
       $("sCards").innerHTML = d.places.map((p, i) => {
         const dot = `<i style="background:var(${SERIES[i % SERIES.length]})"></i>`;
         if (p.error) return `<div class="card missing"><div class="name">${dot}${esc(p.place)}</div><div>${esc(p.error)}</div></div>`;
         return `<div class="card"><div class="top"><div class="name">${dot}${esc(p.place)}</div><span class="lv lv-${lvKey(p.level)}">${esc(p.level || "정보 없음")}</span></div>
-          <div><div class="unit">지금 주변에 있는 사람</div><span class="big num">${man(n(p.min))}~${man(n(p.max))}</span> <span class="unit">명</span></div>
+          <div><div class="unit">현재 인구</div><span class="big num">${man(n(p.min))}~${man(n(p.max))}</span> <span class="unit">명</span></div>
           ${p.message ? `<div class="msgline">${esc(p.message)}</div>` : ""}
           ${subway(p.subway)}</div>`;
-      }).join("") || `<div class="card missing">위에서 장소를 추가해 주세요.</div>`;
-      $("sFcst").innerHTML = ok.filter((p) => p.forecast?.length).map((p) => `<div style="display:grid;grid-template-columns:minmax(90px,140px) 1fr;gap:10px;align-items:center">
+      }).join("") || `<div class="card missing">등록된 장소 없음 ('서울장소.txt')</div>`;
+      $("sFcst").innerHTML = ok.filter((p) => p.forecast?.length).map((p) => `<div class="fc-row">
         <span style="font-weight:600;font-size:14px">${esc(p.place)}</span>
-        <div class="strip">${p.forecast.slice(0, 12).map((f) => `<div title="${esc(f.time)} · ${esc(f.level)} · ${fmt(n(f.min))}~${fmt(n(f.max))}명" style="background:${LVC[lvKey(f.level)] || "var(--bar)"}">${esc(String(f.time || "").slice(11, 13))}</div>`).join("")}</div></div>`).join("")
-        || `<span class="hint">예상 자료가 없습니다.</span>`;
+        <div class="strip">${p.forecast.slice(0, 12).map((f) => `<div title="${esc(f.time)} · ${esc(f.level)} · ${fmt(n(f.min))}~${fmt(n(f.max))}명" style="background:${LVC[lvKey(f.level)] || "var(--bar)"}${lvKey(f.level) === "보통" ? ";color:#1c232b" : ""}">${esc(String(f.time || "").slice(11, 13))}</div>`).join("")}</div></div>`).join("")
+        || `<span class="hint">예측 자료 없음</span>`;
     } catch (e) {
       $("sBasis").textContent = "";
-      $("sNotice").hidden = false; $("sNotice").innerHTML = "<b>아직 서울 자료가 없습니다</b><span class='hint'>단축어 버튼을 눌러 처음 한 번 받아 주세요. 1~2분 뒤 이 화면이 저절로 바뀝니다.</span>";
+      $("sNotice").hidden = false; $("sNotice").innerHTML = "<b>서울 자료를 불러오지 못했습니다</b><span class='hint'>1분 뒤 자동으로 다시 시도합니다.</span>";
     } finally { busy = false; }
   }
 
