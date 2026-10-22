@@ -6,11 +6,14 @@
 <title>지하철 승하차 대시보드</title>
 <link rel="preload" href="fonts/kopub-dotum-medium.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/kopub-dotum-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/pretendard-extrabold.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* Uber-style black-and-white system: flat soft-gray panels, pill controls, 700 headlines.
-   Colour is kept for data only (line series, crowding levels). Font: KoPubWorld Dotum (subset). */
+   Colour is kept for data only (line series, crowding levels). Fonts (subset): KoPubWorld Dotum for text,
+   Pretendard ExtraBold for headlines and big numbers (wider, heavier than KoPub Bold). */
 @font-face { font-family: "KoPub Dotum"; src: url("fonts/kopub-dotum-medium.woff2") format("woff2"); font-weight: 100 599; font-display: swap; }
 @font-face { font-family: "KoPub Dotum"; src: url("fonts/kopub-dotum-bold.woff2") format("woff2"); font-weight: 600 900; font-display: swap; }
+@font-face { font-family: "Pretendard Display"; src: url("fonts/pretendard-extrabold.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 :root {
   --bg: #ffffff;
   --surface: #f3f3f3;
@@ -29,6 +32,7 @@
   --ok: #05944f; --mid: #ffc043; --warn: #ff6937; --bad: #e11900;
   --font: "KoPub Dotum", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --num: var(--font);
+  --display: "Pretendard Display", var(--font);
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #000000; --surface: #161616; --raised: #282828; --fg: #ffffff; --muted: #afafaf; --faint: #6b6b6b;
@@ -50,31 +54,31 @@ body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--fo
 .wrap { max-width: 1040px; margin: 0 auto; padding-block: 24px 64px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: grid; gap: 32px; }
-h1 { font-size: 32px; line-height: 40px; font-weight: 700; margin: 0; }
-h2 { font-size: 20px; line-height: 28px; font-weight: 700; margin: 0; }
+h1 { font-family: var(--display); font-size: 32px; line-height: 40px; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+h2 { font-family: var(--display); font-size: 20px; line-height: 28px; font-weight: 800; margin: 0; }
 .sub { color: var(--muted); margin: 0; font-size: 14px; }
 .num { font-variant-numeric: tabular-nums; }
 header { display: grid; gap: 16px; }
-.badge { justify-self: start; display: inline-flex; align-items: center; font-size: 14px; font-weight: 500;
+.badge { justify-self: start; display: inline-flex; align-items: center; font-size: 14px; font-weight: 700;
   padding: 4px 12px; border-radius: 999px; background: var(--ink); color: var(--on-ink); }
 .sample-note, .notice { background: var(--ink); color: var(--on-ink); border-radius: 16px; padding: 20px 24px; font-size: 15px; display: grid; gap: 4px; }
-.sample-note b, .notice b { font-size: 18px; font-weight: 700; }
+.sample-note b, .notice b { font-family: var(--display); font-size: 18px; font-weight: 800; }
 .notice .hint { color: inherit; opacity: .75; }
 
 /* controls */
 .controls { background: var(--surface); border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
 .row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
-.label { font-size: 14px; font-weight: 500; color: var(--muted); min-width: 56px; }
+.label { font-size: 14px; font-weight: 700; color: var(--muted); min-width: 56px; }
 .group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 button, select, input { font: inherit; color: inherit; }
-.chip { border: 0; background: var(--raised); border-radius: 999px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 500; line-height: 20px; }
+.chip { border: 0; background: var(--raised); border-radius: 999px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 700; line-height: 20px; }
 .chip:active { background: var(--pressed); }
 .chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
 .chip.ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
 .chip:focus-visible, select:focus-visible, input:focus-visible, .tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 select, input[type="text"] { border: 0; background: var(--raised); border-radius: 8px; padding: 8px 12px; font-size: 15px; }
 input::placeholder { color: var(--faint); }
-.stchip { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 6px 6px 14px; font-size: 14px; font-weight: 500; background: var(--raised); }
+.stchip { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 6px 6px 6px 14px; font-size: 14px; font-weight: 700; background: var(--raised); }
 .stchip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .stchip button { border: 0; background: transparent; cursor: pointer; color: var(--muted); width: 24px; height: 24px; border-radius: 50%; line-height: 1; }
 .stchip button:hover { background: var(--pressed); }
@@ -84,14 +88,14 @@ input::placeholder { color: var(--faint); }
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
 .card { background: var(--surface); border-radius: 16px; padding: 20px 24px; display: grid; gap: 8px; min-width: 0; align-content: start; }
 .card .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.card .name { font-weight: 700; font-size: 20px; line-height: 28px; display: flex; align-items: center; gap: 8px; }
+.card .name { font-family: var(--display); font-weight: 800; font-size: 20px; line-height: 28px; display: flex; align-items: center; gap: 8px; }
 .card .name i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .card .rank { font-size: 14px; color: var(--muted); }
 .card .rank b { color: var(--fg); }
-.card .big { font-size: 32px; line-height: 40px; font-weight: 700; }
+.card .big { font-family: var(--display); font-size: 34px; line-height: 40px; font-weight: 800; letter-spacing: -0.01em; font-feature-settings: "tnum"; }
 .card .unit { font-size: 14px; color: var(--muted); }
 .peaks { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
-.peaks-title { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 2px; }
+.peaks-title { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
 .peak { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; }
 .peak .rk { color: var(--muted); width: 1.6em; display: inline-block; }
 .card.missing { color: var(--muted); }
@@ -103,7 +107,7 @@ input::placeholder { color: var(--faint); }
 svg { display: block; width: 100%; height: auto; overflow: visible; }
 svg text { fill: var(--axis); font-family: var(--font); font-size: 13px; font-variant-numeric: tabular-nums; }
 svg .lbl { fill: var(--fg); font-size: 14px; }
-svg .val { fill: var(--fg); font-size: 13px; font-weight: 700; }
+svg .val { fill: var(--fg); font-family: var(--display); font-size: 13px; font-weight: 800; font-feature-settings: "tnum"; }
 svg .grid { stroke: var(--line); stroke-width: 1; }
 .chartbox { position: relative; }
 .tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--on-ink); font-size: 14px; font-variant-numeric: tabular-nums; padding: 10px 14px; border-radius: 12px;
@@ -147,23 +151,23 @@ a { color: var(--fg); text-underline-offset: 3px; }
 
 /* tabs: two pages, Busan and Seoul */
 .tabs { justify-self: start; display: inline-flex; background: var(--surface); border-radius: 36px; padding: 4px; gap: 4px; }
-.tabs button { border: 0; background: transparent; border-radius: 36px; padding: 8px 20px; font-weight: 500; font-size: 16px; line-height: 20px; cursor: pointer; color: var(--fg); display: inline-flex; align-items: center; gap: 8px; }
+.tabs button { border: 0; background: transparent; border-radius: 36px; padding: 8px 20px; font-weight: 700; font-size: 16px; line-height: 20px; cursor: pointer; color: var(--fg); display: inline-flex; align-items: center; gap: 8px; }
 .tabs button[aria-selected="true"] { background: var(--ink); color: var(--on-ink); }
 .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; }
 .page { display: grid; gap: 24px; }
 .page-sub { margin-top: -8px; }
 
 /* Seoul */
-.lv { font-size: 14px; font-weight: 500; padding: 4px 12px; border-radius: 999px; color: #fff; background: var(--muted); white-space: nowrap; }
+.lv { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 999px; color: #fff; background: var(--muted); white-space: nowrap; }
 .lv-여유 { background: var(--ok); } .lv-보통 { background: var(--mid); color: #000; } .lv-약간붐빔 { background: var(--warn); } .lv-붐빔 { background: var(--bad); }
 .legend-lv { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; color: var(--muted); }
 .legend-lv span { display: inline-flex; align-items: center; gap: 6px; }
 .legend-lv i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .fc-row { display: grid; grid-template-columns: minmax(90px, 140px) minmax(0, 1fr); gap: 12px; align-items: center; }
-.fc-name { font-weight: 700; font-size: 15px; }
+.fc-name { font-family: var(--display); font-weight: 800; font-size: 15px; }
 @media (max-width: 600px) { .fc-row { grid-template-columns: minmax(0, 1fr); gap: 6px; } .strip { gap: 2px; } }
 .strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; }
-.strip div { min-width: 0; height: 32px; border-radius: 8px; font-size: 12px; font-weight: 700; color: #fff; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+.strip div { min-width: 0; height: 32px; border-radius: 8px; font-family: var(--display); font-size: 12px; font-weight: 800; color: #fff; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
 .subline { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
 .subrow { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; }
 .subrow .k { color: var(--muted); white-space: nowrap; }
