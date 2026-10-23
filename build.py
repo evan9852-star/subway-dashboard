@@ -10,6 +10,7 @@ GitHub Actions에서 실행: 웹페이지(_site 폴더)를 만든다.
 import json
 import os
 import shutil
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
 import live
@@ -23,12 +24,31 @@ def places():
     return [s.strip() for s in lines if s.strip() and not s.lstrip().startswith("#")][:20]
 
 
+def previous():
+    """지금 사이트에 올라가 있는 seoul.json (장소 이름 → 자료). 못 받으면 빈 사전."""
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    if "/" not in repo:
+        return {}
+    owner, name = repo.split("/", 1)
+    try:
+        with urllib.request.urlopen(f"https://{owner}.github.io/{name}/seoul.json", timeout=20) as r:
+            old = json.loads(r.read().decode("utf-8"))
+        return {p["place"]: p for p in old.get("places", []) if not p.get("error")}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def seoul():
     key = os.environ.get("SEOUL_KEY", "").strip()
     if not key:
         return {"needKey": True, "places": []}
     with ThreadPoolExecutor(max_workers=6) as ex:
-        return {"needKey": False, "places": list(ex.map(lambda p: live.fetch_place(key, p), places()))}
+        now = list(ex.map(lambda p: live.fetch_place(key, p), places()))
+    # 서울 API가 잠깐 안 되면 오류 카드 대신 직전 정상 자료를 그대로 둔다 (화면에 날짜와 함께 표시)
+    if any(p.get("error") for p in now):
+        old = previous()
+        now = [{**old[p["place"]], "stale": True} if p.get("error") and p["place"] in old else p for p in now]
+    return {"needKey": False, "places": now}
 
 
 def main():
