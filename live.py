@@ -265,7 +265,8 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/busan.json":
             self.send(busan_cached())
         elif path == "/seoul.json":
-            self.send(seoul_now(seoul_places()))
+            # live: 이 프로그램은 화면에서 고른 아무 장소나 /api/seoul 로 바로 받아 온다
+            self.send({**seoul_now(seoul_places()), "live": True})
         elif path.startswith("/fonts/"):
             name = path[len("/fonts/"):]
             f = HERE / "fonts" / name
@@ -282,7 +283,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send(f.read_bytes(), "text/csv")
         elif path == "/api/seoul":
             places = [p.strip() for p in q.get("places", [""])[0].split(",") if p.strip()][:20]
-            self.send(seoul_now(places, fresh="fresh" in q))
+            self.send({**seoul_now(places, fresh="fresh" in q), "live": True})
         else:
             self.send({"error": "없는 주소"}, code=404)
 
