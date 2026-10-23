@@ -87,7 +87,7 @@ input::placeholder { color: var(--faint); }
 .stchip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .stchip button { border: 0; background: transparent; cursor: pointer; color: var(--muted); width: 36px; height: 36px; border-radius: 50%; line-height: 1; font-size: 18px; }
 .stchip button:hover { background: var(--pressed); }
-#addSt { width: 140px; }
+#addSt, #addPl { width: 140px; }
 .placelist { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 15px; font-weight: 700; }
 .placelist span { display: inline-flex; align-items: center; gap: 8px; }
 .placelist i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
@@ -326,10 +326,12 @@ a { color: var(--fg); text-underline-offset: 3px; }
     <section class="controls" aria-label="서울 장소">
       <div class="row">
         <span class="label">장소</span>
-        <div class="placelist" id="places"></div>
+        <div class="group" id="places"></div>
         <div class="group">
-          <span class="hint">장소 변경: 저장소 '서울장소.txt'</span>
+          <input type="text" id="addPl" list="plList" placeholder="장소 추가" aria-label="서울 장소 추가">
+          <datalist id="plList"></datalist>
         </div>
+        <span class="hint" id="plHint"></span>
       </div>
       <div class="row">
         <span class="label">혼잡도</span>
@@ -656,11 +658,34 @@ a { color: var(--fg); text-underline-offset: 3px; }
     if (e.key === "ArrowRight") show("seoul"); else if (e.key === "ArrowLeft") show("busan");
   });
 
-  /* places */
-  let places = [];
+  /* places: picked per viewer and kept in this browser, like the Busan stations.
+     The Mac program fetches any of Seoul's 121 places on demand; the website only has
+     the places build.py collected (서울장소.txt), so it offers just those. */
+  const ALL = ["강남 MICE 관광특구", "동대문 관광특구", "명동 관광특구", "이태원 관광특구", "잠실 관광특구", "종로·청계 관광특구", "홍대 관광특구", "경복궁", "광화문·덕수궁", "보신각", "서울 암사동 유적", "창덕궁·종묘", "가산디지털단지역", "강남역", "건대입구역", "고덕역", "고속터미널역", "교대역", "구로디지털단지역", "구로역", "군자역", "대림역", "동대문역", "뚝섬역", "미아사거리역", "발산역", "사당역", "삼각지역", "서울대입구역", "서울식물원·마곡나루역", "서울역", "선릉역", "성신여대입구역", "수유역", "신논현역·논현역", "신도림역", "신림역", "신촌·이대역", "양재역", "역삼역", "연신내역", "오목교역·목동운동장", "왕십리역", "용산역", "이태원역", "장지역", "장한평역", "천호역", "총신대입구(이수)역", "충정로역", "합정역", "혜화역", "홍대입구역(2호선)", "회기역", "가락시장", "가로수길", "광장(전통)시장", "김포공항", "노량진", "덕수궁길·정동길", "북촌한옥마을", "서촌", "성수카페거리", "쌍문역", "압구정로데오거리", "여의도", "연남동", "영등포 타임스퀘어", "용리단길", "이태원 앤틱가구거리", "인사동", "창동 신경제 중심지", "청담동 명품거리", "청량리 제기동 일대 전통시장", "해방촌·경리단길", "DDP(동대문디자인플라자)", "DMC(디지털미디어시티)", "강서한강공원", "고척돔", "광나루한강공원", "광화문광장", "국립중앙박물관·용산가족공원", "난지한강공원", "남산공원", "노들섬", "뚝섬한강공원", "망원한강공원", "반포한강공원", "북서울꿈의숲", "서리풀공원·몽마르뜨공원", "서울대공원", "서울숲공원", "아차산", "양화한강공원", "어린이대공원", "여의도한강공원", "월드컵공원", "응봉산", "이촌한강공원", "잠실종합운동장", "잠실한강공원", "잠원한강공원", "청계산", "북창동 먹자골목", "남대문시장", "익선동", "신정네거리역", "잠실새내역", "잠실역", "잠실롯데타워·석촌호수", "송리단길·호수단길", "신촌 스타광장", "보라매공원", "서대문독립공원", "안양천", "여의서로", "올림픽공원", "홍제폭포", "송현녹지광장", "시의회 앞", "숭례문"];
+  const MAX = 20;
+  const pnorm = (s) => String(s).replace(/[\s()·.\-ㆍ]/g, "");
+  let sel = null, onDemand = false, avail = [];
+  try { sel = JSON.parse(localStorage.getItem("seoul-places") || "null"); } catch (e) {}
+  function savePl() { try { localStorage.setItem("seoul-places", JSON.stringify(sel)); } catch (e) {} }
   function chips() {
-    $("places").innerHTML = places.map((p, i) => `<span><i style="background:var(${SERIES[i % SERIES.length]})"></i>${esc(p)}</span>`).join("");
+    $("places").innerHTML = (sel || []).map((p, i) =>
+      `<span class="stchip"><i style="background:var(${SERIES[i % SERIES.length]})"></i>${esc(p)}<button data-pdel="${i}" aria-label="${esc(p)} 빼기">×</button></span>`).join("");
+    $("plList").innerHTML = (onDemand ? ALL : avail).filter((p) => !(sel || []).includes(p)).map((p) => `<option value="${esc(p)}">`).join("");
+    $("plHint").textContent = onDemand ? "서울시 주요 장소 121곳 중에서 고를 수 있습니다" : `이 사이트에서 고를 수 있는 장소 ${avail.length}곳`;
   }
+  function addPlace() {
+    const v = $("addPl").value.trim(); if (!v || !sel) return;
+    const name = (onDemand ? ALL : avail).find((p) => pnorm(p) === pnorm(v));
+    if (!name) { $("plHint").textContent = `'${v}'은(는) 고를 수 있는 장소가 아닙니다. 목록에서 고르세요`; return; }
+    if (!sel.includes(name) && sel.length < MAX) sel.push(name);
+    $("addPl").value = ""; savePl(); chips(); load();
+  }
+  $("addPl").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); addPlace(); } });
+  $("addPl").addEventListener("change", addPlace);
+  $("places").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-pdel]"); if (!b) return;
+    sel.splice(+b.dataset.pdel, 1); savePl(); chips(); load();
+  });
   $("sRefresh").addEventListener("click", () => load());
 
   function subway(list) {
@@ -709,19 +734,31 @@ a { color: var(--fg); text-underline-offset: 3px; }
     if (busy) return; busy = true;
     $("sBasis").textContent = "불러오는 중…";
     try {
-      const d = await (await fetch("seoul.json?t=" + Date.now(), { cache: "no-store" })).json();
-      places = d.places.map((p) => p.place); chips();
+      const get = async (u) => (await fetch(u + (u.includes("?") ? "&" : "?") + "t=" + Date.now(), { cache: "no-store" })).json();
+      const api = () => get("api/seoul?places=" + encodeURIComponent(sel.join(",")));
+      let d;
+      if (onDemand && sel.length) d = await api();
+      else {
+        d = await get("seoul.json");
+        onDemand = !!d.live; avail = d.places.map((p) => p.place);
+        if (!sel) sel = [...avail];
+        if (onDemand && sel.length && sel.join("|") !== avail.join("|")) d = await api();
+      }
+      chips();
       $("sNotice").hidden = !d.needKey;
       if (d.needKey) {
         $("sNotice").innerHTML = "<b>서울 인증키 없음</b><span class='hint'>웹: 저장소 Settings → Secrets and variables → Actions에 SEOUL_KEY 등록 · 맥: 폴더의 '서울키.txt'에 키 저장</span>";
         $("sCards").innerHTML = ""; $("sFcst").innerHTML = ""; $("sBasis").textContent = ""; return;
       }
-      const ok = d.places.filter((p) => !p.error);
+      // one row per picked place, in the picked order (the dot colour follows that order)
+      const got = Object.fromEntries(d.places.map((p) => [p.place, p]));
+      const P = sel.map((name, i) => (onDemand ? d.places[i] : got[name]) || { place: name, error: "이 사이트에는 아직 이 장소 자료가 없습니다" });
+      const ok = P.filter((p) => !p.error);
       const t = ok.map((p) => p.time).filter(Boolean).sort().pop();
       $("sBasis").innerHTML = t ? basis(t) : "";
       // the most crowded place gets the full-width card; errors go last
       const LVR = { "붐빔": 4, "약간붐빔": 3, "보통": 2, "여유": 1 };
-      const items = d.places.map((p, i) => ({ p, i }));
+      const items = P.map((p, i) => ({ p, i }));
       const good = items.filter((x) => !x.p.error);
       const lead = good.length ? good.reduce((a, b) => ((LVR[lvKey(b.p.level)] || 0) > (LVR[lvKey(a.p.level)] || 0) ? b : a)) : null;
       const ordered = [...(lead ? [lead] : []), ...good.filter((x) => x !== lead), ...items.filter((x) => x.p.error)];
@@ -735,7 +772,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
           ${p.stale ? `<div class="peakline">직전 자료 · ${esc(when(p.time || ""))} 기준</div>` : ""}
           ${isLead && p.message ? `<div class="msgline">${esc(p.message)}</div>` : ""}
           ${isLead ? sub : sub ? `<details><summary>근처 역 승하차</summary>${sub}</details>` : ""}</div>`;
-      }).join("") || `<div class="card missing">등록된 장소 없음 ('서울장소.txt')</div>`;
+      }).join("") || `<div class="card missing">고른 장소 없음 · 위에서 장소를 추가하세요</div>`;
       $("sFcst").innerHTML = ok.filter((p) => p.forecast?.length).map((p) => `<div class="fc-row">
         <span class="fc-name">${esc(p.place)}</span>
         <div><div class="strip">${p.forecast.slice(0, 12).map((f) => `<div title="${esc(f.time)} · ${esc(f.level)} · ${fmt(n(f.min))}~${fmt(n(f.max))}명" style="background:${LVC[lvKey(f.level)] || "var(--bar)"}${lvKey(f.level) === "보통" ? ";color:#111214" : ""}">${esc(String(f.time || "").slice(11, 13))}</div>`).join("")}</div>
@@ -747,7 +784,6 @@ a { color: var(--fg); text-underline-offset: 3px; }
     } finally { busy = false; }
   }
 
-  chips();
   let first = (location.hash || "").slice(1);
   if (!first) { try { first = localStorage.getItem("page") || "busan"; } catch (e) { first = "busan"; } }
   show(first);
