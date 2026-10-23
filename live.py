@@ -217,9 +217,11 @@ def fetch_place(key, place, fresh=False):
     except Exception as e:  # noqa: BLE001
         out = {"place": place, "error": f"서울 자료를 받지 못했습니다 ({e})"}
     out["fetched"] = dt.datetime.now().strftime("%H:%M")
-    if "error" not in out:
-        with _lock:
+    with _lock:
+        if "error" not in out:
             _seoul_cache[place] = (time.time(), out)
+        elif c:  # 서울 API가 잠깐 안 될 때는 직전 정상 자료를 보여 준다
+            return {**c[1], "stale": True}
     return out
 
 
