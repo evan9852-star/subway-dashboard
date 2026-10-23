@@ -92,9 +92,11 @@ input::placeholder { color: var(--faint); }
 .placelist i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
 /* candidate cards */
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 12px; }
-#sCards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.card.feature { grid-column: 1 / -1; padding: 24px; }
+/* flex so the small cards stretch to fill their row next to the full-width lead card */
+.cards { display: flex; flex-wrap: wrap; gap: 12px; }
+.cards > .card { flex: 1 1 148px; }
+#sCards > .card { flex-basis: 240px; }
+.cards > .card.feature { flex-basis: 100%; padding: 24px; }
 .card.feature .big { font-size: clamp(40px, 12vw, 64px); line-height: 1.1; }
 .card.feature .name { font-size: 24px; line-height: 32px; }
 @media (min-width: 720px) {
