@@ -21,31 +21,33 @@
   --raised: #ffffff;
   --fg: #111214;
   --muted: #5e5e5e;
-  --faint: #8a8a8a;
+  --faint: #767676;
+  --control: #858585;
+  --on-lv: #ffffff;
   --line: #e2e2e2;
   --pressed: #e2e2e2;
   --ink: #111214; --on-ink: #ffffff;
   --mast: #111214; --busan: #f06a00; --seoul: #00a84d;
-  --bar: #c6c6c6;
+  --bar: #858585;
   --band: #e6e6e6;
   --danger: #e11900;
   --axis: #5e5e5e;
-  --s1: #111214; --s2: #276ef1; --s3: #05944f; --s4: #ff6937; --s5: #7356bf; --s6: #99644c;
-  --ok: #05944f; --mid: #ffc043; --warn: #ff6937; --bad: #e11900;
+  --s1: #111214; --s2: #276ef1; --s3: #047a3e; --s4: #c2410c; --s5: #7356bf; --s6: #99644c;
+  --ok: #047a3e; --mid: #ffc043; --warn: #c2410c; --bad: #e11900;
   --font: "KoPub Dotum", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --num: var(--font);
   --display: "Black Han Sans", var(--font);
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0c0c0d; --surface: #161618; --raised: #28282b; --fg: #f4f4f5; --muted: #afafaf; --faint: #6b6b6b;
-  --line: #2e2e31; --pressed: #3a3a3d; --ink: #f4f4f5; --on-ink: #111214; --mast: #1c1c1f; --bar: #4b4b4b; --band: #262626;
+  --bg: #0c0c0d; --surface: #161618; --raised: #28282b; --fg: #f4f4f5; --muted: #afafaf; --faint: #9a9aa0;
+  --line: #2e2e31; --control: #76767c; --on-lv: #111214; --pressed: #3a3a3d; --ink: #f4f4f5; --on-ink: #111214; --mast: #1c1c1f; --bar: #76767c; --band: #262626;
   --danger: #ff5a45; --axis: #afafaf;
   --s1: #f4f4f5; --s2: #5b91f5; --s3: #06c167; --s4: #ff8a5c; --s5: #9d86e0; --s6: #c08b70;
   --ok: #06c167; --mid: #ffc043; --warn: #ff8a5c; --bad: #ff5a45;
   color-scheme: dark; } }
 :root[data-theme="dark"] {
-  --bg: #0c0c0d; --surface: #161618; --raised: #28282b; --fg: #f4f4f5; --muted: #afafaf; --faint: #6b6b6b;
-  --line: #2e2e31; --pressed: #3a3a3d; --ink: #f4f4f5; --on-ink: #111214; --mast: #1c1c1f; --bar: #4b4b4b; --band: #262626;
+  --bg: #0c0c0d; --surface: #161618; --raised: #28282b; --fg: #f4f4f5; --muted: #afafaf; --faint: #9a9aa0;
+  --line: #2e2e31; --control: #76767c; --on-lv: #111214; --pressed: #3a3a3d; --ink: #f4f4f5; --on-ink: #111214; --mast: #1c1c1f; --bar: #76767c; --band: #262626;
   --danger: #ff5a45; --axis: #afafaf;
   --s1: #f4f4f5; --s2: #5b91f5; --s3: #06c167; --s4: #ff8a5c; --s5: #9d86e0; --s6: #c08b70;
   --ok: #06c167; --mid: #ffc043; --warn: #ff8a5c; --bad: #ff5a45;
@@ -73,18 +75,21 @@ h2 { font-family: var(--display); font-size: 22px; line-height: 28px; font-weigh
 .label { font-size: 14px; font-weight: 700; color: var(--muted); min-width: 56px; }
 .group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 button, select, input { font: inherit; color: inherit; }
-.chip { border: 0; background: var(--raised); border-radius: 999px; padding: 8px 16px; cursor: pointer; font-size: 14px; font-weight: 700; line-height: 20px; }
+.chip { border: 0; background: var(--raised); box-shadow: inset 0 0 0 1px var(--control); border-radius: 999px; padding: 12px 16px; min-height: 44px; cursor: pointer; font-size: 14px; font-weight: 700; line-height: 20px; }
 .chip:active { background: var(--pressed); }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); }
-.chip.ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--line); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); box-shadow: none; }
+.chip.ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--control); }
 .chip:focus-visible, select:focus-visible, input:focus-visible, .tabs button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-select, input[type="text"] { border: 0; background: var(--raised); border-radius: 8px; padding: 8px 12px; font-size: 15px; }
+select, input[type="text"] { border: 0; background: var(--raised); box-shadow: inset 0 0 0 1px var(--control); border-radius: 8px; padding: 8px 12px; min-height: 44px; font-size: 15px; }
 input::placeholder { color: var(--faint); }
-.stchip { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 4px 4px 4px 16px; font-size: 14px; font-weight: 700; background: var(--raised); }
+.stchip { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 4px 4px 4px 16px; min-height: 44px; font-size: 14px; font-weight: 700; background: var(--raised); box-shadow: inset 0 0 0 1px var(--control); }
 .stchip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.stchip button { border: 0; background: transparent; cursor: pointer; color: var(--muted); width: 24px; height: 24px; border-radius: 50%; line-height: 1; }
+.stchip button { border: 0; background: transparent; cursor: pointer; color: var(--muted); width: 36px; height: 36px; border-radius: 50%; line-height: 1; font-size: 18px; }
 .stchip button:hover { background: var(--pressed); }
 #addSt { width: 140px; }
+.placelist { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 15px; font-weight: 700; }
+.placelist span { display: inline-flex; align-items: center; gap: 8px; }
+.placelist i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 
 /* candidate cards */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 12px; }
@@ -135,7 +140,7 @@ svg .grid { stroke: var(--line); stroke-width: 1; }
 .tip div { display: flex; gap: 12px; justify-content: space-between; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; }
 .legend span { display: inline-flex; align-items: center; gap: 8px; }
-.legend i { width: 16px; height: 4px; border-radius: 2px; display: inline-block; }
+.legend svg { display: inline-block; width: 24px; height: 8px; overflow: visible; }
 
 /* table */
 .tablebox { overflow-x: auto; max-height: 460px; overflow-y: auto; background: var(--raised); border-radius: 12px; }
@@ -177,7 +182,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
 .mast h1 { color: #fff; }
 @media (max-width: 600px) { .mast { grid-template-columns: minmax(0, 1fr); padding: 20px 16px 28px; } }
 .tabs { justify-self: start; display: inline-flex; background: rgba(255,255,255,.12); border-radius: 36px; padding: 4px; gap: 4px; }
-.tabs button { border: 0; background: transparent; border-radius: 36px; padding: 8px 16px; font-weight: 700; font-size: 16px; line-height: 20px; cursor: pointer; color: #fff; display: inline-flex; align-items: center; gap: 8px; }
+.tabs button { border: 0; background: transparent; border-radius: 36px; padding: 12px 16px; min-height: 44px; font-weight: 700; font-size: 16px; line-height: 20px; cursor: pointer; color: #fff; display: inline-flex; align-items: center; gap: 8px; }
 .tabs button:active { background: rgba(255,255,255,.2); }
 .tabs button[aria-selected="true"] { background: #fff; color: #111214; }
 .tabs button:focus-visible { outline-color: #fff; }
@@ -187,16 +192,17 @@ a { color: var(--fg); text-underline-offset: 3px; }
 .page-sub { margin-top: -8px; }
 
 /* Seoul */
-.lv { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 999px; color: #fff; background: var(--muted); white-space: nowrap; }
+.lv { font-size: 14px; font-weight: 700; padding: 4px 12px; border-radius: 999px; color: var(--on-lv); background: var(--muted); white-space: nowrap; }
 .lv-여유 { background: var(--ok); } .lv-보통 { background: var(--mid); color: #111214; } .lv-약간붐빔 { background: var(--warn); } .lv-붐빔 { background: var(--bad); }
 .legend-lv { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; color: var(--muted); }
 .legend-lv span { display: inline-flex; align-items: center; gap: 8px; }
 .legend-lv i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .fc-row { display: grid; grid-template-columns: minmax(90px, 140px) minmax(0, 1fr); gap: 12px; align-items: center; }
+.fc-note { font-size: 14px; color: var(--muted); margin-top: 4px; }
 .fc-name { font-family: var(--display); font-weight: 400; font-size: 16px; }
 @media (max-width: 600px) { .fc-row { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
 .strip { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
-.strip div { min-width: 0; height: 32px; border-radius: 8px; font-family: var(--display); font-size: 13px; font-weight: 400; color: #fff; display: grid; place-items: center; font-variant-numeric: tabular-nums; }
+.strip div { min-width: 0; height: 32px; border-radius: 8px; font-family: var(--display); font-size: 13px; font-weight: 400; color: var(--on-lv); display: grid; place-items: center; font-variant-numeric: tabular-nums; }
 .subline { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 4px; }
 .subrow { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; }
 .subrow .k { color: var(--muted); white-space: nowrap; }
@@ -314,7 +320,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
     <section class="controls" aria-label="서울 장소">
       <div class="row">
         <span class="label">장소</span>
-        <div class="group" id="places"></div>
+        <div class="placelist" id="places"></div>
         <div class="group">
           <span class="hint">장소 변경: 저장소 '서울장소.txt'</span>
         </div>
@@ -349,7 +355,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
       <div id="sFcst" style="display:grid;gap:10px"></div>
     </section>
 
-    <p class="hint">혼잡도는 최근 28일 평균과 비교한 현재 인구 기준입니다. 역 승하차는 티머니 집계로 약 5분마다 갱신되고, 새벽 1~5시에는 집계되지 않습니다.<br>
+    <p class="hint" style="max-width: 65ch">혼잡도는 최근 28일 평균과 비교한 현재 인구 기준입니다. 역 승하차는 티머니 집계로 약 5분마다 갱신되고, 새벽 1~5시에는 집계되지 않습니다.<br>
     '서울장소.txt'에는 서울시 주요 장소 120곳의 공식 이름을 한 줄에 하나씩 적습니다. 예: 강남역 · 홍대입구역(2호선) · 신촌·이대역 · 명동 관광특구</p>
   </div>
 </div>
@@ -359,6 +365,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
   const WD = ["월", "화", "수", "목", "금", "토", "일"];
   const DEFAULTS = { period: "all", days: ["목", "금"], h0: 10, h1: 20, kind: "all", stations: ["부산역", "시청", "연산", "경성대부경대"] };
   const SERIES = ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6"];
+  const DASH = ["", "8 4", "2 4", "12 4 2 4", "4 4", "16 6"];  // lines stay tellable apart without colour
   const $ = (id) => document.getElementById(id);
   const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   const fmt = (n) => Math.round(n).toLocaleString("ko-KR");
@@ -372,150 +379,62 @@ a { color: var(--fg); text-underline-offset: 3px; }
   }
   function save() { try { localStorage.setItem("bsm-view", JSON.stringify(state)); } catch (e) {} }
 
-  /* ---------- parsing ---------- */
-  function decode(buf) {
-    try { return new TextDecoder("utf-8", { fatal: true }).decode(buf); }
-    catch (e) { return new TextDecoder("euc-kr").decode(buf); }
-  }
-  function parseCSV(text) {
-    const rows = []; let row = [], f = "", q = false;
-    for (let i = 0; i < text.length; i++) {
-      const c = text[i];
-      if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
-      else if (c === '"') q = true;
-      else if (c === ",") { row.push(f); f = ""; }
-      else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
-      else f += c;
-    }
-    if (f !== "" || row.length) { row.push(f); rows.push(row); }
-    return rows.filter((r) => r.some((x) => x.trim() !== ""));
-  }
-  function hourOf(h) {
-    const s = String(h).replace(/\s/g, "").replace(/^﻿/, "");
-    let m = s.match(/^t_?(\d{2})(\d{2})$/i) || s.match(/^(\d{1,2})(시|:00)?[-~]/) || s.match(/^(\d{1,2})시/) || s.match(/^(\d{2})(\d{2})$/);
-    if (!m) return null;
-    const v = parseInt(m[1], 10);
-    if (v < 0 || v > 24) return null;
-    return v === 24 ? 0 : v;
-  }
-  const findCol = (hdr, keys) => hdr.findIndex((c) => { const n = String(c).replace(/\s/g, "").toLowerCase(); return keys.some((k) => n.includes(k)); });
-  const toNum = (v) => { const n = parseFloat(String(v).replace(/,/g, "")); return isFinite(n) ? n : 0; };
-  function toDate(v) {
-    const d = String(v).replace(/\D/g, "");
-    if (d.length < 8) return null;
-    return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  }
-  const gubnOf = (v) => { const s = String(v); return s.includes("승") ? "on" : s.includes("하") ? "off" : "all"; };
-
-  // returns Map key "date|station|hour" -> {on, off, all}
-  function parseTable(rows) {
-    const hi = rows.findIndex((r) => findCol(r, ["역명", "역이름", "sta_nm", "station"]) >= 0);
-    if (hi < 0) throw new Error("역 이름 열을 찾지 못했습니다. 부산교통공사 시간대별 승하차인원 파일인지 확인하세요.");
-    const hdr = rows[hi].map((c) => String(c).replace(/^﻿/, "").trim());
-    const cSt = findCol(hdr, ["역명", "역이름", "sta_nm", "station"]);
-    const cDate = findCol(hdr, ["년월일", "일자", "날짜", "ymd", "date"]);
-    const cG = findCol(hdr, ["구분", "gubn"]);
-    if (cDate < 0) throw new Error("날짜 열을 찾지 못했습니다. 열 목록: " + hdr.join(", "));
-    const hourCols = hdr.map((h, i) => [i, hourOf(h)]).filter(([, h]) => h !== null);
-    const out = new Map();
-    const add = (date, st, hour, g, n) => {
-      const k = date + "|" + st + "|" + hour;
-      let o = out.get(k); if (!o) { o = {}; out.set(k, o); }
-      o[g] = (o[g] || 0) + n;
-    };
-    const body = rows.slice(hi + 1);
-    if (hourCols.length) {
-      for (const r of body) {
-        const date = toDate(r[cDate]); const st = String(r[cSt] || "").trim();
-        if (!date || !st) continue;
-        const g = cG >= 0 ? gubnOf(r[cG]) : "all";
-        for (const [i, h] of hourCols) add(date, st, h, g, toNum(r[i]));
-      }
-    } else {
-      const cT = findCol(hdr, ["시간대", "시간"]), cOn = findCol(hdr, ["승차"]), cOff = findCol(hdr, ["하차"]), cN = findCol(hdr, ["인원", "합계", "이용객"]);
-      if (cT < 0 || (cN < 0 && cOn < 0)) throw new Error("시간대나 인원 열을 찾지 못했습니다. 열 목록: " + hdr.join(", "));
-      for (const r of body) {
-        const date = toDate(r[cDate]); const st = String(r[cSt] || "").trim();
-        let h = hourOf(r[cT]); if (h === null) { const m = String(r[cT]).match(/\d+/); h = m ? parseInt(m[0], 10) % 24 : null; }
-        if (!date || !st || h === null) continue;
-        if (cOn >= 0 && cOff >= 0 && cOn !== cOff) { add(date, st, h, "on", toNum(r[cOn])); add(date, st, h, "off", toNum(r[cOff])); }
-        else add(date, st, h, cG >= 0 ? gubnOf(r[cG]) : "all", toNum(r[cN]));
-      }
-    }
-    if (!out.size) throw new Error("읽을 수 있는 행이 없습니다.");
-    // a file with separate 승차/하차 rows may also carry a 합계 row; drop it to avoid double counting
-    for (const o of out.values()) if ((o.on != null || o.off != null) && o.all != null) delete o.all;
-    return out;
-  }
-  function summarize(map) {
-    const dates = new Set(), sts = new Set();
-    for (const k of map.keys()) { const [d, s] = k.split("|"); dates.add(d); sts.add(s); }
-    const ds = [...dates].sort();
-    return { from: ds[0], to: ds[ds.length - 1], days: ds.length, stations: sts.size };
-  }
-
-  /* ---------- data store ---------- */
-  let sources = [];          // [{id, name, uploadedAt, map}]
-  let sample = false;
-  let merged = new Map();    // key -> {on,off,all}
-  function mergeAll() {
-    merged = new Map();
-    for (const src of [...sources].sort((a, b) => (a.uploadedAt < b.uploadedAt ? -1 : 1)))
-      for (const [k, v] of src.map) merged.set(k, { ...(merged.get(k) || {}), ...v });
-  }
-  function value(o, kind) {
-    const has = o.on != null || o.off != null;
-    if (kind === "on") return has ? o.on || 0 : 0;
-    if (kind === "off") return has ? o.off || 0 : 0;
-    return has ? (o.on || 0) + (o.off || 0) : o.all || 0;
-  }
+  /* ---------- data ---------- */
+  // busan.json is pre-aggregated by build.py: days[month][weekday] = number of dates,
+  // data[month][weekday] = flat [station][hour][승차, 하차] sums (null when that weekday has no dates)
+  let B = null, sample = false;
   function makeSample() {
     const base = { 서면: 9800, 부산역: 6200, 연산: 6800, 동래: 4300, 남포: 4800, 해운대: 4100, 센텀시티: 3600, 시청: 3100, 경성대부경대: 4500,
       덕천: 3900, 사상: 4200, 부산대: 3700, 수영: 3300, 하단: 3000, 장산: 2400, 범일: 2600, 토성: 1900, 양정: 2100 };
     const prof = [0.1, 0, 0, 0, 0, 0.6, 1.6, 3.4, 5.2, 3.1, 2.4, 2.5, 2.8, 2.7, 2.8, 3.0, 3.6, 4.6, 5.4, 3.6, 2.6, 2.1, 1.4, 0.6];
-    const m = new Map(); let seed = 7;
+    const stations = Object.keys(base).sort((x, y) => x.localeCompare(y, "ko"));
+    const days = new Array(7).fill(0), data = new Array(7).fill(null);
+    let seed = 7;
     const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (let d = 1; d <= 30; d++) {
-      const date = `2026-09-${String(d).padStart(2, "0")}`;
-      const wd = (new Date(date + "T00:00:00Z").getUTCDay() + 6) % 7;
+      const wd = (new Date(`2026-09-${String(d).padStart(2, "0")}T00:00:00Z`).getUTCDay() + 6) % 7;
       const f = wd >= 5 ? 0.7 : 1;
-      for (const [st, b] of Object.entries(base)) for (let h = 0; h < 24; h++) {
+      days[wd]++;
+      const arr = (data[wd] ||= new Array(stations.length * 48).fill(0));
+      stations.forEach((st, si) => { for (let h = 0; h < 24; h++) {
         const tilt = st === "부산역" || st === "남포" ? (h >= 10 && h <= 16 ? 1.25 : 0.9) : 1;
-        const n = (b / 40) * prof[h] * f * tilt * (0.85 + rnd() * 0.3);
-        m.set(`${date}|${st}|${h}`, { on: Math.round(n * 0.5), off: Math.round(n * 0.5) });
-      }
+        const n = (base[st] / 40) * prof[h] * f * tilt * (0.85 + rnd() * 0.3);
+        arr[(si * 24 + h) * 2] += Math.round(n * 0.5); arr[(si * 24 + h) * 2 + 1] += Math.round(n * 0.5);
+      } });
     }
-    return m;
+    return { files: [], from: "2026-09-01", to: "2026-09-30", stations, months: ["2026-09"], days: { "2026-09": days }, data: { "2026-09": data } };
   }
 
   /* ---------- compute ---------- */
-  const wdOf = (date) => WD[(new Date(date + "T00:00:00Z").getUTCDay() + 6) % 7];
   function compute() {
-    const want = new Set(state.days);
-    const inPeriod = (d) => state.period === "all" || d.startsWith(state.period);
-    const daysSel = new Set(), stTotal = new Map(), stHour = new Map(), hoursSeen = new Set();
-    for (const [k, o] of merged) {
-      const [d, st, hs] = k.split("|"); const h = +hs;
-      if (!inPeriod(d) || !want.has(wdOf(d))) continue;
-      daysSel.add(d);
-      const v = value(o, state.kind);
-      if (v > 0) hoursSeen.add(h);
-      let hr = stHour.get(st); if (!hr) { hr = new Array(24).fill(0); stHour.set(st, hr); }
-      hr[h] += v;
-      if (h >= state.h0 && h < state.h1) stTotal.set(st, (stTotal.get(st) || 0) + v);
-      else if (!stTotal.has(st)) stTotal.set(st, 0);
+    const S = B.stations.length, want = state.days.map((d) => WD.indexOf(d));
+    const months = state.period === "all" ? B.months : [state.period];
+    const on = new Float64Array(S * 24), off = new Float64Array(S * 24), seen = new Uint8Array(S);
+    let ndays = 0;
+    for (const m of months) for (const w of want) {
+      const a = B.data[m]?.[w]; if (!a) continue;
+      ndays += B.days[m][w];
+      for (let i = 0; i < S * 24; i++) { on[i] += a[2 * i]; off[i] += a[2 * i + 1]; if (a[2 * i] || a[2 * i + 1]) seen[(i / 24) | 0] = 1; }
     }
-    const n = Math.max(daysSel.size, 1);
-    const rank = [...stTotal].map(([st, t]) => ({ st, avg: t / n, hours: stHour.get(st).map((x) => x / n) })).sort((a, b) => b.avg - a.avg);
+    const n = Math.max(ndays, 1), hoursSeen = new Set(), rank = [];
+    for (let si = 0; si < S; si++) {
+      if (!seen[si]) continue;
+      const hours = new Array(24); let t = 0;
+      for (let h = 0; h < 24; h++) {
+        const i = si * 24 + h, v = state.kind === "on" ? on[i] : state.kind === "off" ? off[i] : on[i] + off[i];
+        if (v > 0) hoursSeen.add(h);
+        hours[h] = v / n;
+        if (h >= state.h0 && h < state.h1) t += v;
+      }
+      rank.push({ st: B.stations[si], avg: t / n, hours });
+    }
+    rank.sort((x, y) => y.avg - x.avg);
     rank.forEach((r, i) => (r.rank = i + 1));
-    return { rank, ndays: daysSel.size, hoursSeen };
+    return { rank, ndays, hoursSeen };
   }
 
   /* ---------- controls ---------- */
-  function periods() {
-    const ms = new Set(); for (const k of merged.keys()) ms.add(k.slice(0, 7));
-    return [...ms].sort().reverse();
-  }
+  const periods = () => (B ? [...B.months].reverse() : []);
   function buildControls() {
     const ps = periods();
     if (state.period !== "all" && !ps.includes(state.period)) state.period = "all";
@@ -526,7 +445,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
     $("h0").innerHTML = opt(0, 23, state.h0);
     $("h1").innerHTML = opt(1, 24, state.h1);
     for (const b of $("kind").children) b.setAttribute("aria-pressed", b.dataset.kind === state.kind);
-    const all = [...new Set([...merged.keys()].map((k) => k.split("|")[1]))].sort((a, b) => a.localeCompare(b, "ko"));
+    const all = B ? [...B.stations].sort((a, b) => a.localeCompare(b, "ko")) : [];
     $("stList").innerHTML = all.map((s) => `<option value="${esc(s)}">`).join("");
     renderStationChips();
   }
@@ -558,18 +477,15 @@ a { color: var(--fg); text-underline-offset: 3px; }
 
   /* ---------- render ---------- */
   function render() {
-    const has = merged.size > 0;
     $("sampleNote").hidden = !sample; $("modeBadge").hidden = !sample;
-    if (!has) { $("coverage").textContent = "데이터 없음 · 아래 '데이터 파일' 참고"; return; }
+    if (!B) return;
     const { rank, ndays, hoursSeen } = compute();
-    const all = [...merged.keys()].map((k) => k.slice(0, 10)).sort();
-    const sum = { from: all[0], to: all[all.length - 1] };
-    $("coverage").innerHTML = `${sample ? "예시 · " : ""}<span class="num">${sum.from.replaceAll("-", ".")} – ${sum.to.replaceAll("-", ".")}</span> 데이터 · 역 ${new Set([...merged.keys()].map((k) => k.split("|")[1])).size}개`;
+    $("coverage").innerHTML = `${sample ? "예시 · " : ""}<span class="num">${B.from.replaceAll("-", ".")} – ${B.to.replaceAll("-", ".")}</span> 데이터 · 역 ${B.stations.length}개`;
     const kindTxt = { all: "승차+하차", on: "승차", off: "하차" }[state.kind];
     const dayTxt = state.days.length === 7 ? "모든 요일" : state.days.length ? WD.filter((d) => state.days.includes(d)).join("·") + "요일" : "요일 없음";
     $("basis").textContent = `${dayTxt} ${state.h0}시~${state.h1}시 · ${kindTxt} · ${ndays}일 평균`;
 
-    const cand = state.stations.map((s, i) => ({ name: s, color: `var(${SERIES[i % SERIES.length]})`, row: rank.find((r) => norm(r.st) === norm(s)) }));
+    const cand = state.stations.map((s, i) => ({ name: s, color: `var(${SERIES[i % SERIES.length]})`, dash: DASH[i % DASH.length], row: rank.find((r) => norm(r.st) === norm(s)) }));
     const candSet = new Set(cand.filter((c) => c.row).map((c) => c.row.st));
 
     // cards
@@ -639,7 +555,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
   }
 
   function drawLines(cands, hoursSeen, W) {
-    $("legend").innerHTML = cands.map((c) => `<span><i style="background:${c.color}"></i>${esc(c.row.st)}</span>`).join("");
+    $("legend").innerHTML = cands.map((c) => `<span><svg width="24" height="8" aria-hidden="true"><line x1="0" x2="24" y1="4" y2="4" stroke="${c.color}" stroke-width="3" stroke-dasharray="${c.dash}"></line></svg>${esc(c.row.st)}</span>`).join("");
     const hs = [...hoursSeen].sort((a, b) => a - b);
     let hMin = hs.length ? Math.min(...hs.filter((h) => h >= 4), 5) : 5; const hMax = 23;
     if (!isFinite(hMin)) hMin = 5;
@@ -656,7 +572,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
     for (let h = hMin; h <= hMax; h++) if ((hMax - h) % every === 0) s += `<text x="${x(h)}" y="${H - 10}" text-anchor="middle">${h}시</text>`;
     cands.forEach((c) => {
       const pts = []; for (let h = hMin; h <= hMax; h++) pts.push(`${x(h).toFixed(1)},${y(c.row.hours[h]).toFixed(1)}`);
-      s += `<polyline points="${pts.join(" ")}" fill="none" stroke="${c.color}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+      s += `<polyline points="${pts.join(" ")}" fill="none" stroke="${c.color}" stroke-dasharray="${c.dash}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
       let ph = state.h0; for (let h = state.h0; h < state.h1; h++) if (c.row.hours[h] > c.row.hours[ph]) ph = h;
       if (ph >= hMin && ph <= hMax) s += `<circle cx="${x(ph)}" cy="${y(c.row.hours[ph])}" r="4.5" fill="${c.color}" stroke="var(--surface)" stroke-width="2"></circle>`;
     });
@@ -688,30 +604,21 @@ a { color: var(--fg); text-underline-offset: 3px; }
 
   /* ---------- files ---------- */
   const msg = (t, err) => { $("msg").textContent = t; $("msg").className = "msg" + (err ? " err" : ""); };
-  function renderFiles() {
-    $("files").innerHTML = sources.map((s) => `<div class="file"><div><b>${esc(s.name)}</b><div class="meta num">${s.info.from} ~ ${s.info.to} · ${s.info.days}일 · 역 ${s.info.stations}개</div></div></div>`).join("");
+  function renderFiles(files) {
+    $("files").innerHTML = files.map((f) => `<div class="file"><div><b>${esc(f.name)}</b><div class="meta num">${f.error
+      ? `읽지 못함: ${esc(f.error)}` : `${f.from} ~ ${f.to} · ${f.days}일 · 역 ${f.stations}개`}</div></div></div>`).join("");
   }
-  function useSources() {
-    sample = sources.length === 0;
-    if (sample) merged = makeSample(); else mergeAll();
-    renderFiles(); buildControls(); render();
-  }
-  useSources();
+  buildControls();
   (async () => {
     try {
-      const list = await (await fetch("files.json?t=" + Date.now(), { cache: "no-store" })).json();
-      if (!list.length) { msg("'부산데이터' 폴더에 CSV 없음 · 예시 데이터 표시 중", true); return; }
-      msg("파일 읽는 중…");
-      const loaded = [];
-      for (const f of list) {
-        try {
-          const map = parseTable(parseCSV(decode(await (await fetch("부산데이터/" + encodeURIComponent(f.name))).arrayBuffer())));
-          loaded.push({ id: f.name, name: f.name, uploadedAt: String(f.mtime).padStart(16, "0"), map, info: summarize(map) });
-        } catch (e) { msg(`${f.name}: ${e.message}`, true); }
-      }
-      sources = loaded; useSources();
-      if (loaded.length === list.length) msg("");
-    } catch (e) { msg("파일 목록을 불러오지 못했습니다. 잠시 후 새로고침하세요.", true); }
+      const b = await (await fetch("busan.json?t=" + Date.now(), { cache: "no-store" })).json();
+      sample = !b.stations.length;
+      B = sample ? makeSample() : b;
+      renderFiles(b.files); buildControls(); render();
+      const bad = b.files.filter((f) => f.error);
+      if (sample) msg("'부산데이터' 폴더에 읽을 수 있는 CSV 없음 · 예시 데이터 표시 중", true);
+      else msg(bad.map((f) => `${f.name}: ${f.error}`).join(" / "), bad.length > 0);
+    } catch (e) { $("coverage").textContent = "부산 자료를 불러오지 못했습니다"; msg("잠시 후 새로고침하세요.", true); }
   })();
 })();
 </script>
@@ -746,7 +653,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
   /* places */
   let places = [];
   function chips() {
-    $("places").innerHTML = places.map((p, i) => `<span class="stchip" style="padding-right:16px"><i style="background:var(${SERIES[i % SERIES.length]})"></i>${esc(p)}</span>`).join("");
+    $("places").innerHTML = places.map((p, i) => `<span><i style="background:var(${SERIES[i % SERIES.length]})"></i>${esc(p)}</span>`).join("");
   }
   $("sRefresh").addEventListener("click", () => load());
 
@@ -773,6 +680,13 @@ a { color: var(--fg); text-underline-offset: 3px; }
       if (items.length) rows.push(`<div class="subrow"><b>${esc(nameK ? s[nameK] : "역")}${/역$/.test(nameK ? s[nameK] : "") ? "" : "역"}</b><span class="k">${lineK ? esc(s[lineK]) : ""}</span></div>${items.join("")}`);
     }
     return rows.length ? `<div class="subline"><div class="peaks-title">근처 지하철역 승하차</div>${rows.join("")}</div>` : "";
+  }
+
+  // the crowded hours spelled out in words, so the strip is not colour-only
+  function busyNote(fc) {
+    const at = (lv) => fc.filter((f) => lvKey(f.level) === lv).map((f) => String(f.time || "").slice(11, 13) + "시");
+    const parts = [["붐빔", at("붐빔")], ["약간 붐빔", at("약간붐빔")]].filter(([, hs]) => hs.length).map(([k, hs]) => `${k} ${hs.join("·")}`);
+    return esc(parts.length ? parts.join(" / ") : "12시간 동안 붐비는 시간 없음");
   }
 
   let busy = false;
@@ -808,7 +722,8 @@ a { color: var(--fg); text-underline-offset: 3px; }
       }).join("") || `<div class="card missing">등록된 장소 없음 ('서울장소.txt')</div>`;
       $("sFcst").innerHTML = ok.filter((p) => p.forecast?.length).map((p) => `<div class="fc-row">
         <span class="fc-name">${esc(p.place)}</span>
-        <div class="strip">${p.forecast.slice(0, 12).map((f) => `<div title="${esc(f.time)} · ${esc(f.level)} · ${fmt(n(f.min))}~${fmt(n(f.max))}명" style="background:${LVC[lvKey(f.level)] || "var(--bar)"}${lvKey(f.level) === "보통" ? ";color:#111214" : ""}">${esc(String(f.time || "").slice(11, 13))}</div>`).join("")}</div></div>`).join("")
+        <div><div class="strip">${p.forecast.slice(0, 12).map((f) => `<div title="${esc(f.time)} · ${esc(f.level)} · ${fmt(n(f.min))}~${fmt(n(f.max))}명" style="background:${LVC[lvKey(f.level)] || "var(--bar)"}${lvKey(f.level) === "보통" ? ";color:#111214" : ""}">${esc(String(f.time || "").slice(11, 13))}</div>`).join("")}</div>
+        <div class="fc-note">${busyNote(p.forecast.slice(0, 12))}</div></div></div>`).join("")
         || `<span class="hint">예측 자료 없음</span>`;
     } catch (e) {
       $("sBasis").textContent = "";
