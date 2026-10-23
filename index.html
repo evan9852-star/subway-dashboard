@@ -698,7 +698,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
       places = d.places.map((p) => p.place); chips();
       $("sNotice").hidden = !d.needKey;
       if (d.needKey) {
-        $("sNotice").innerHTML = "<b>서울 인증키 없음</b><span class='hint'>저장소 Settings → Secrets and variables → Actions에 SEOUL_KEY를 등록한 뒤 단축어 실행</span>";
+        $("sNotice").innerHTML = "<b>서울 인증키 없음</b><span class='hint'>웹: 저장소 Settings → Secrets and variables → Actions에 SEOUL_KEY 등록 · 맥: 폴더의 '서울키.txt'에 키 저장</span>";
         $("sCards").innerHTML = ""; $("sFcst").innerHTML = ""; $("sBasis").textContent = ""; return;
       }
       const ok = d.places.filter((p) => !p.error);

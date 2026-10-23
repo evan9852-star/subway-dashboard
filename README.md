@@ -9,6 +9,17 @@
 
 Mac에서 쓰던 `지하철_대시보드_열기.command` / `live.py` 는 그대로 쓰면 됩니다.
 
+### 맥 프로그램을 새 화면으로 바꾸기
+
+맥 폴더(`지하철_대시보드_열기.command`가 있는 곳)에 이 저장소의 아래 파일을 복사해 덮어씁니다.
+
+- `live.py` (덮어쓰기)
+- `index.html` (새로 추가 · 있으면 이 화면을, 없으면 예전 `page.html`을 띄웁니다)
+- `fonts` 폴더 (통째로)
+- `서울장소.txt` (서울에서 볼 장소 목록)
+
+`서울키.txt`, `부산데이터` 폴더, `page.html`은 그대로 둡니다. 저장소 첫 화면의 Code → Download ZIP으로 한 번에 받을 수 있습니다.
+
 ## 처음 한 번만 할 일
 
 1. **서울 인증키 넣기**: 저장소 Settings → Secrets and variables → Actions → New repository secret
