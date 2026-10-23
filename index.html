@@ -134,6 +134,7 @@ input::placeholder { color: var(--faint); }
 .panel { background: var(--surface); border-radius: 16px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
 .panel-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
 .hint { font-size: 14px; color: var(--muted); }
+.stale { background: var(--mid); color: #111214; border-radius: 999px; padding: 0 8px; margin-left: 4px; font-weight: 700; }
 svg { display: block; width: 100%; height: auto; overflow: visible; }
 svg text { fill: var(--axis); font-family: var(--font); font-size: 13px; font-variant-numeric: tabular-nums; }
 svg .lbl { fill: var(--fg); font-size: 14px; }
@@ -694,6 +695,15 @@ a { color: var(--fg); text-underline-offset: 3px; }
     return esc(parts.length ? parts.join(" / ") : "12시간 동안 붐비는 시간 없음");
   }
 
+  // "2026-10-23 09:00" (Seoul time) → "09:00 기준", or with the date when it is not today;
+  // more than 2 hours old gets an "오래된 자료" label so a stalled update is not read as current
+  const kstNow = () => new Date().toLocaleString("sv-SE", { timeZone: "Asia/Seoul" }).slice(0, 16);
+  const when = (t) => (t.slice(0, 10) === kstNow().slice(0, 10) ? "" : `${+t.slice(5, 7)}월 ${+t.slice(8, 10)}일 `) + t.slice(11, 16);
+  function basis(t) {
+    const age = Date.parse(kstNow().replace(" ", "T") + ":00Z") - Date.parse(t.slice(0, 16).replace(" ", "T") + ":00Z");
+    return `${esc(when(t))} 기준` + (age > 2 * 3600e3 ? ` <b class="stale">오래된 자료</b>` : "");
+  }
+
   let busy = false;
   async function load() {
     if (busy) return; busy = true;
@@ -708,7 +718,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
       }
       const ok = d.places.filter((p) => !p.error);
       const t = ok.map((p) => p.time).filter(Boolean).sort().pop();
-      $("sBasis").textContent = t ? `${t.slice(11, 16)} 기준` : "";
+      $("sBasis").innerHTML = t ? basis(t) : "";
       // the most crowded place gets the full-width card; errors go last
       const LVR = { "붐빔": 4, "약간붐빔": 3, "보통": 2, "여유": 1 };
       const items = d.places.map((p, i) => ({ p, i }));
@@ -722,6 +732,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
         const sub = subway(p.subway);
         return `<div class="card ${isLead ? "feature" : "compact"}"><div class="top"><div class="name">${dot}${esc(p.place)}</div><span class="lv lv-${esc(lvKey(p.level))}">${esc(p.level || "정보 없음")}</span></div>
           <div><div class="unit">현재 인구</div><span class="big num">${man(n(p.min))}~<wbr>${man(n(p.max))}</span> <span class="unit">명</span></div>
+          ${p.stale ? `<div class="peakline">직전 자료 · ${esc(when(p.time || ""))} 기준</div>` : ""}
           ${isLead && p.message ? `<div class="msgline">${esc(p.message)}</div>` : ""}
           ${isLead ? sub : sub ? `<details><summary>근처 역 승하차</summary>${sub}</details>` : ""}</div>`;
       }).join("") || `<div class="card missing">등록된 장소 없음 ('서울장소.txt')</div>`;
