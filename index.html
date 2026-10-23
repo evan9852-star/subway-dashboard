@@ -94,14 +94,16 @@ input::placeholder { color: var(--faint); }
 
 /* candidate cards */
 /* flex so the small cards stretch to fill their row next to the full-width lead card */
-.cards { display: flex; flex-wrap: wrap; gap: 12px; }
+.cards { display: flex; flex-wrap: wrap; gap: 12px; container-type: inline-size; }
 .cards > .card { flex: 1 1 148px; }
-#sCards > .card { flex-basis: 240px; }
+#sCards > .card:not(.feature) { flex-basis: 240px; }
 .cards > .card.feature { flex-basis: 100%; padding: 24px; }
-.card.feature .big { font-size: clamp(40px, 12vw, 64px); line-height: 1.1; }
+/* sized by the card row, not the window: on wide screens the Seoul cards sit in a narrow column */
+.card.feature .big { font-size: clamp(32px, 11cqi, 64px); line-height: 1.1; word-break: keep-all; }
 .card.feature .name { font-size: 24px; line-height: 32px; }
-@media (min-width: 720px) {
+@container (min-width: 640px) {
   .card.feature { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; }
+  .card.feature .big { font-size: clamp(32px, calc(8.5cqi - 8px), 64px); }
   .card.feature > .top { grid-column: 1 / -1; }
   .card.feature > .peaks, .card.feature > .subline { grid-column: 2; grid-row: 2 / span 3; border-top: 0; margin-top: 0; padding-top: 0; padding-left: 32px; border-left: 1px solid var(--line); }
 }
@@ -719,7 +721,7 @@ a { color: var(--fg); text-underline-offset: 3px; }
         const isLead = lead && p === lead.p;
         const sub = subway(p.subway);
         return `<div class="card ${isLead ? "feature" : "compact"}"><div class="top"><div class="name">${dot}${esc(p.place)}</div><span class="lv lv-${esc(lvKey(p.level))}">${esc(p.level || "정보 없음")}</span></div>
-          <div><div class="unit">현재 인구</div><span class="big num">${man(n(p.min))}~${man(n(p.max))}</span> <span class="unit">명</span></div>
+          <div><div class="unit">현재 인구</div><span class="big num">${man(n(p.min))}~<wbr>${man(n(p.max))}</span> <span class="unit">명</span></div>
           ${isLead && p.message ? `<div class="msgline">${esc(p.message)}</div>` : ""}
           ${isLead ? sub : sub ? `<details><summary>근처 역 승하차</summary>${sub}</details>` : ""}</div>`;
       }).join("") || `<div class="card missing">등록된 장소 없음 ('서울장소.txt')</div>`;
