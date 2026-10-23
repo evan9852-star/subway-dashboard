@@ -6,15 +6,16 @@
 <title>지하철 승하차 대시보드</title>
 <link rel="preload" href="fonts/kopub-dotum-medium.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/kopub-dotum-bold.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/blackhansans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/suit-extrabold.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* Uber-style black-and-white system: flat soft-gray panels, pill controls, 700 headlines.
    Colour is kept for data only (line series, crowding levels) plus one line-colour stripe under the masthead.
-   Fonts (subset): KoPubWorld Dotum for text, Black Han Sans (signage-style) for headlines and big numbers.
+   Fonts (subset): KoPubWorld Dotum for text, SUIT ExtraBold for headlines and big numbers
+   (between Black Han Sans, which felt overbearing, and KoPub Bold, which read too thin).
    Spacing stays on a 4px grid. */
 @font-face { font-family: "KoPub Dotum"; src: url("fonts/kopub-dotum-medium.woff2") format("woff2"); font-weight: 100 599; font-display: swap; }
 @font-face { font-family: "KoPub Dotum"; src: url("fonts/kopub-dotum-bold.woff2") format("woff2"); font-weight: 600 900; font-display: swap; }
-@font-face { font-family: "Black Han Sans"; src: url("fonts/blackhansans.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "SUIT Display"; src: url("fonts/suit-extrabold.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 :root {
   --bg: #ffffff;
   --surface: #f3f3f3;
@@ -36,7 +37,7 @@
   --ok: #047a3e; --mid: #ffc043; --warn: #c2410c; --bad: #e11900;
   --font: "KoPub Dotum", -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --num: var(--font);
-  --display: "Black Han Sans", var(--font);
+  --display: "SUIT Display", var(--font);
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0c0c0d; --surface: #161618; --raised: #28282b; --fg: #f4f4f5; --muted: #afafaf; --faint: #9a9aa0;
